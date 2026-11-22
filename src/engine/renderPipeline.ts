@@ -206,6 +206,7 @@ export function renderEditedCanvas(
       jawline: 0,
       cheekbones: 0,
       forehead: 0,
+      hairVolume: 0,
       bigEyes: 0,
       eyeTilt: 0,
       eyeDistance: 0,

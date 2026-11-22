@@ -152,6 +152,42 @@ function buildFaceReshapeOps(
       });
     }
 
+    // 5b. Meitu Signature Hair Crown Volume ("ผมพอง / วอลลุ่มผม")
+    if (reshape.hairVolume > 0.5) {
+      const fh = pt(FACE_REGIONS.foreheadTop);
+      const s = reshape.hairVolume / 100;
+      const crownY = fh.y - faceH * 0.16;
+      const crownRad = faceW * 0.62;
+      // Lift crown hair upward & gently puff upper-left / upper-right hair silhouette
+      ops.push({
+        kind: 'push',
+        cx: fh.x,
+        cy: crownY,
+        radius: crownRad,
+        dx: 0,
+        dy: -faceH * 0.095 * s,
+        strength: 1,
+      });
+      ops.push({
+        kind: 'push',
+        cx: fh.x - faceW * 0.34,
+        cy: fh.y - faceH * 0.06,
+        radius: faceW * 0.48,
+        dx: -faceW * 0.055 * s,
+        dy: -faceH * 0.045 * s,
+        strength: 1,
+      });
+      ops.push({
+        kind: 'push',
+        cx: fh.x + faceW * 0.34,
+        cy: fh.y - faceH * 0.06,
+        radius: faceW * 0.48,
+        dx: faceW * 0.055 * s,
+        dy: -faceH * 0.045 * s,
+        strength: 1,
+      });
+    }
+
     // 6. Big Eyes (radial enlargement centered on irises)
     const leftEyeCenter =
       lms.length > 473

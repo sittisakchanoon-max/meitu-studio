@@ -32,14 +32,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   faces,
   segmentationMask,
   lang,
-  dark,
   onSavedCallback,
 }) => {
   const t = useT(lang);
   const [format, setFormat] = useState<ExportFormat>(
     state.cutout.enabled && state.cutout.bgType === 'transparent' ? 'image/png' : 'image/jpeg'
   );
-  const [quality, setQuality] = useState(92);
+  const [quality, setQuality] = useState(94);
   const [maxDim, setMaxDim] = useState<ResolutionOption>(0);
   const [watermark, setWatermark] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -59,7 +58,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       });
       const url = canvas.toDataURL(format, quality / 100);
       setPreviewUrl(url);
-      // Estimate full resolution size
       const natMax = Math.max(sourceImage.naturalWidth, sourceImage.naturalHeight);
       const targetMax = maxDim === 0 ? natMax : Math.min(natMax, maxDim);
       const areaScale = Math.pow(targetMax / Math.max(canvas.width, canvas.height), 2);
@@ -72,7 +70,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   if (!open) return null;
 
-  const generateFullBlob = (): Promise<{ blob: Blob; dataUrl: string; ext: string }> => {
+  const generateFullBlob = (): Promise<{ blob: Blob; ext: string }> => {
     return new Promise((resolve) => {
       const canvas = renderEditedCanvas(sourceImage, state, {
         maxDimension: maxDim,
@@ -81,11 +79,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         includeWatermark: watermark,
       });
       const ext = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpg';
-      const dataUrl = canvas.toDataURL(format, quality / 100);
       canvas.toBlob(
-        (blob) => {
-          resolve({ blob: blob ?? new Blob(), dataUrl, ext });
-        },
+        (blob) => resolve({ blob: blob ?? new Blob(), ext }),
         format,
         quality / 100
       );
@@ -98,28 +93,23 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `meitu-studio-${Date.now()}.${ext}`;
+    a.download = `meitu-${Date.now()}.${ext}`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
-
-    // Save tiny thumbnail to recent projects
     if (previewUrl) onSavedCallback?.(previewUrl);
     setRendering(false);
     setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 2500);
+    setTimeout(() => setSavedToast(false), 2600);
   };
 
   const handleShare = async () => {
     const { blob, ext } = await generateFullBlob();
-    const file = new File([blob], `meitu-studio.${ext}`, { type: format });
+    const file = new File([blob], `meitu.${ext}`, { type: format });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       try {
-        await navigator.share({
-          files: [file],
-          title: 'Meitu Studio AI',
-        });
+        await navigator.share({ files: [file], title: 'Meitu' });
       } catch {
-        // user cancelled
+        // cancelled
       }
     } else {
       handleDownload();
@@ -127,148 +117,141 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-xs"
+      onClick={onClose}
+    >
       <div
-        className={`w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border ${
-          dark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-white border-pink-100 text-zinc-800'
-        }`}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-t-[28px] bg-[#121214] text-white border-t border-white/10 safe-bottom overflow-hidden shadow-2xl"
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-pink-500/15">
-          <h3 className="font-bold text-base">{t('exportTitle')}</h3>
+        {/* Drag Handle */}
+        <div className="flex justify-center pt-2.5 pb-1">
+          <span className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
+        <div className="flex items-center justify-between px-5 pb-3">
+          <h3 className="font-bold text-[15px]">{t('exportTitle')}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-pink-500/10 text-zinc-400 hover:text-pink-500"
+            className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center text-white/75"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          {/* Preview */}
-          <div
-            className={`h-48 rounded-2xl overflow-hidden flex items-center justify-center relative ${
-              dark ? 'dark-checkerboard-bg' : 'checkerboard-bg'
-            }`}
-          >
-            {previewUrl ? (
-              <img src={previewUrl} alt="Export preview" className="max-h-full max-w-full object-contain" />
-            ) : (
-              <div className="text-xs text-zinc-400">Rendering...</div>
-            )}
-            <span className="absolute bottom-2 right-2 px-2.5 py-0.5 rounded-full bg-black/65 text-white text-[11px] font-semibold">
-              ~{sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`}
-            </span>
-          </div>
-
-          {/* Format */}
-          <div>
-            <div className="text-xs font-semibold mb-1.5">{t('format')}</div>
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                [
-                  ['image/jpeg', 'JPEG'],
-                  ['image/png', 'PNG (Alpha)'],
-                  ['image/webp', 'WebP'],
-                ] as const
-              ).map(([fmt, lbl]) => (
-                <button
-                  key={fmt}
-                  type="button"
-                  onClick={() => setFormat(fmt)}
-                  className={`py-2 rounded-xl text-xs font-bold transition-all ${
-                    format === fmt
-                      ? 'meitu-gradient text-white shadow-sm'
-                      : dark
-                        ? 'bg-zinc-800 text-zinc-300'
-                        : 'bg-pink-50 text-zinc-700'
-                  }`}
-                >
-                  {lbl}
-                </button>
-              ))}
+        <div className="px-5 pb-5 space-y-4">
+          {/* Preview Row */}
+          <div className="flex items-center gap-4 p-3 rounded-2xl bg-[#1C1C1E]">
+            <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 dark-checkerboard-bg flex items-center justify-center">
+              {previewUrl && (
+                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+              )}
             </div>
-          </div>
-
-          {/* Resolution */}
-          <div>
-            <div className="text-xs font-semibold mb-1.5">{t('resolution')}</div>
-            <div className="grid grid-cols-4 gap-1.5">
-              {(
-                [
-                  [0, t('resOriginal')],
-                  [1080, '1080p'],
-                  [2048, '2K'],
-                  [3840, '4K'],
-                ] as Array<[ResolutionOption, string]>
-              ).map(([res, lbl]) => (
-                <button
-                  key={res}
-                  type="button"
-                  onClick={() => setMaxDim(res)}
-                  className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold truncate ${
-                    maxDim === res
-                      ? 'meitu-gradient text-white'
-                      : dark
-                        ? 'bg-zinc-800 text-zinc-300'
-                        : 'bg-pink-50 text-zinc-700'
-                  }`}
-                >
-                  {lbl}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Quality */}
-          {format !== 'image/png' && (
-            <div>
-              <div className="flex justify-between text-xs font-semibold mb-1">
-                <span>{t('quality')}</span>
-                <span className="text-pink-500">{quality}%</span>
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="text-xs font-semibold text-white">
+                {format === 'image/png' ? 'PNG (Transparent)' : format === 'image/webp' ? 'WebP' : 'JPEG High Quality'}
               </div>
+              <div className="text-[11px] text-[#8E8E93]">
+                {maxDim === 0 ? t('resOriginal') : `${maxDim}px HD`} · ~
+                {sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`}
+              </div>
+              <label className="flex items-center gap-2 pt-1 text-[11px] text-zinc-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={watermark}
+                  onChange={(e) => setWatermark(e.target.checked)}
+                  className="accent-[#FF4F7B] w-3.5 h-3.5"
+                />
+                <span>{t('watermark')}</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Format Segmented Pills */}
+          <div className="grid grid-cols-3 gap-2">
+            {(
+              [
+                ['image/jpeg', 'JPEG'],
+                ['image/png', 'PNG'],
+                ['image/webp', 'WebP'],
+              ] as const
+            ).map(([fmt, lbl]) => (
+              <button
+                key={fmt}
+                type="button"
+                onClick={() => setFormat(fmt)}
+                className={`py-2 rounded-full text-xs font-semibold transition-colors ${
+                  format === fmt ? 'bg-white text-black' : 'bg-[#1C1C1E] text-[#8E8E93]'
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+
+          {/* Resolution Segmented Pills */}
+          <div className="grid grid-cols-4 gap-1.5">
+            {(
+              [
+                [0, lang === 'th' ? 'ต้นฉบับ' : 'Full'],
+                [1080, '1080p'],
+                [2048, '2K'],
+                [3840, '4K'],
+              ] as Array<[ResolutionOption, string]>
+            ).map(([res, lbl]) => (
+              <button
+                key={res}
+                type="button"
+                onClick={() => setMaxDim(res)}
+                className={`py-2 rounded-full text-[11px] font-semibold ${
+                  maxDim === res ? 'bg-white text-black' : 'bg-[#1C1C1E] text-[#8E8E93]'
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+
+          {/* Quality Thin White Slider */}
+          {format !== 'image/png' && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[#8E8E93] shrink-0">{t('quality')}</span>
               <input
                 type="range"
-                min={50}
+                min={55}
                 max={100}
                 value={quality}
                 onChange={(e) => setQuality(Number(e.target.value))}
-                className="meitu-slider"
+                className="meitu-white-slider"
+                style={{
+                  background: `linear-gradient(to right, #fff 0%, #fff ${((quality - 55) / 45) * 100}%, rgba(255,255,255,0.2) ${((quality - 55) / 45) * 100}%, rgba(255,255,255,0.2) 100%)`,
+                }}
               />
+              <span className="text-xs font-semibold w-9 text-right tabular-nums">{quality}%</span>
             </div>
           )}
 
-          {/* Watermark toggle */}
-          <label className="flex items-center justify-between text-xs font-semibold cursor-pointer">
-            <span>{t('watermark')}</span>
-            <input
-              type="checkbox"
-              checked={watermark}
-              onChange={(e) => setWatermark(e.target.checked)}
-              className="accent-pink-500 w-4 h-4"
-            />
-          </label>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-1">
+          {/* Save & Share CTAs */}
+          <div className="flex gap-2.5 pt-1">
             <button
               type="button"
               disabled={rendering}
               onClick={handleDownload}
-              className="flex-1 py-3 rounded-2xl meitu-gradient text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-pink-500/30 hover:opacity-95 disabled:opacity-60"
+              className="flex-1 py-3.5 rounded-full meitu-gradient text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(255,59,107,0.4)] active:scale-[0.98] transition-transform disabled:opacity-60"
             >
-              {savedToast ? <Check className="w-4 h-4" /> : <Download className="w-4 h-4" />}
-              {savedToast ? t('savedSuccess') : t('downloadNow')}
+              {savedToast ? <Check className="w-4.5 h-4.5" /> : <Download className="w-4.5 h-4.5" />}
+              {savedToast ? t('savedSuccess') : lang === 'th' ? 'บันทึกลงอัลบั้ม' : 'Save Photo'}
             </button>
             <button
               type="button"
               disabled={rendering}
               onClick={handleShare}
-              className={`px-4 py-3 rounded-2xl font-bold text-sm flex items-center gap-1.5 border ${
-                dark ? 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700' : 'border-pink-200 bg-pink-50 text-pink-600'
-              }`}
+              className="w-12 h-12 rounded-full bg-[#1C1C1E] flex items-center justify-center text-white active:scale-95"
+              aria-label={t('shareNow')}
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-5 h-5" />
             </button>
           </div>
         </div>

@@ -112,7 +112,8 @@ export function applyBeautyRetouch(
     beauty.nasolabial > 0 ||
     beauty.brightenEyes > 0 ||
     beauty.teethWhiten > 0 ||
-    beauty.hdrGlow > 0;
+    beauty.hdrGlow > 0 ||
+    beauty.faceLight > 0;
   if (!hasAny) return;
 
   const smoothAmt = beauty.smooth / 100;
@@ -339,6 +340,23 @@ export function applyBeautyRetouch(
     ctx.globalCompositeOperation = 'screen';
     ctx.globalAlpha = (beauty.hdrGlow / 100) * 0.26;
     ctx.drawImage(glowCanvas, 0, 0);
+    ctx.restore();
+  }
+
+  // 10. 3D Face Studio Relighting (soft directional beauty key light on face center!)
+  if (beauty.faceLight > 0) {
+    const amt = (beauty.faceLight / 100) * 0.42;
+    const cx = faces.length > 0 ? (faces[0].box.x + faces[0].box.w * 0.5) * w : w * 0.5;
+    const cy = faces.length > 0 ? (faces[0].box.y + faces[0].box.h * 0.45) * h : h * 0.42;
+    const rad = faces.length > 0 ? Math.max(faces[0].box.w * w, faces[0].box.h * h) * 0.85 : Math.min(w, h) * 0.42;
+    ctx.save();
+    ctx.globalCompositeOperation = 'soft-light';
+    const grad = ctx.createRadialGradient(cx, cy, rad * 0.08, cx, cy, rad);
+    grad.addColorStop(0, `rgba(255, 250, 246, ${amt * 1.15})`);
+    grad.addColorStop(0.55, `rgba(255, 240, 236, ${amt * 0.52})`);
+    grad.addColorStop(1, 'rgba(255, 240, 236, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
     ctx.restore();
   }
 }

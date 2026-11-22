@@ -34,6 +34,7 @@ export interface BeautySettings {
   brightenEyes: number; // 0..100
   teethWhiten: number;  // 0..100
   hdrGlow: number;      // 0..100
+  faceLight: number;    // 0..100 (3D Studio Relighting)
 }
 
 export interface ReshapeSettings {
@@ -42,6 +43,7 @@ export interface ReshapeSettings {
   jawline: number;      // -100..100
   cheekbones: number;   // -100..100
   forehead: number;     // -100..100
+  hairVolume: number;   // 0..100 (Meitu signature Crown/Hair Volume!)
   bigEyes: number;      // -100..100
   eyeTilt: number;      // -100..100
   eyeDistance: number;  // -100..100
@@ -397,6 +399,7 @@ export function createDefaultEditorState(): EditorState {
       brightenEyes: 0,
       teethWhiten: 0,
       hdrGlow: 0,
+      faceLight: 0,
     },
     reshape: {
       slimFace: 0,
@@ -404,6 +407,7 @@ export function createDefaultEditorState(): EditorState {
       jawline: 0,
       cheekbones: 0,
       forehead: 0,
+      hairVolume: 0,
       bigEyes: 0,
       eyeTilt: 0,
       eyeDistance: 0,

@@ -1,21 +1,42 @@
 import React, { useMemo, useState } from 'react';
 import {
   Ban,
+  Brush,
   Check,
+  Circle,
+  Contrast,
   Copy,
+  Droplet,
   Eraser,
+  Eye,
+  Film,
+  Flame,
   FlipHorizontal,
   FlipVertical,
+  Focus,
   Heart,
+  Highlighter,
+  Info,
+  Moon,
+  Palette,
+  Pen,
   Plus,
+  Rainbow,
   RotateCcw,
   RotateCw,
   Search,
+  Sliders,
   Sparkles,
+  Star,
   Store,
+  Sun,
+  Thermometer,
   Trash2,
+  Triangle,
   Undo2,
+  Wand2,
   X,
+  Zap,
 } from 'lucide-react';
 import {
   FILTER_CATEGORIES,
@@ -62,6 +83,16 @@ import {
   TextLayer,
 } from '../types/editor';
 import { CurveEditor } from './CurveEditor';
+import {
+  BigEyeIcon,
+  FaceSlimIcon,
+  LipsIcon,
+  NoseIcon,
+  SkinSmoothIcon,
+  SmileLiftIcon,
+  TeethIcon,
+  VLineIcon,
+} from './MeituIcons';
 
 export type MakeupSubMode =
   | 'looks'
@@ -107,66 +138,75 @@ const HSL_COLORS: Array<{ key: HSLChannelKey; color: string; th: string; en: str
   { key: 'magenta', color: '#ec4899', th: 'ชมพู', en: 'Pink' },
 ];
 
-const BEAUTY_ITEMS: Array<{ key: keyof Omit<BeautySettings, 'autoPreset'>; icon: string; th: string; en: string }> = [
-  { key: 'smooth', icon: '✨', th: 'ผิวเนียน', en: 'Smooth' },
-  { key: 'whiten', icon: '🤍', th: 'ผิวขาวใส', en: 'Whiten' },
-  { key: 'rosy', icon: '🌸', th: 'อมชมพู', en: 'Rosy' },
-  { key: 'hdrGlow', icon: '💧', th: 'ผิวฉ่ำโกลว์', en: 'Glass' },
-  { key: 'evenTone', icon: '🎨', th: 'สีผิวเนียน', en: 'Even' },
-  { key: 'matte', icon: '🍃', th: 'ลดมัน', en: 'Matte' },
-  { key: 'darkCircles', icon: '🌙', th: 'ลดใต้ตา', en: 'Under-Eye' },
-  { key: 'nasolabial', icon: '😊', th: 'ลดร่องแก้ม', en: 'Lines' },
-  { key: 'brightenEyes', icon: '👁️', th: 'ตาวิ้งใส', en: 'Bright Eye' },
-  { key: 'teethWhiten', icon: '😁', th: 'ฟันขาว', en: 'Teeth' },
+type IconComp = React.ComponentType<{ className?: string }>;
+
+const BEAUTY_ITEMS: Array<{
+  key: keyof Omit<BeautySettings, 'autoPreset'>;
+  Icon: IconComp;
+  th: string;
+  en: string;
+}> = [
+  { key: 'smooth', Icon: SkinSmoothIcon, th: 'ผิวเนียน', en: 'Smooth' },
+  { key: 'whiten', Icon: Sun, th: 'ผิวขาว', en: 'Whiten' },
+  { key: 'faceLight', Icon: Sparkles, th: 'แสงหน้า 3D', en: '3D Light' },
+  { key: 'rosy', Icon: Heart, th: 'อมชมพู', en: 'Rosy' },
+  { key: 'hdrGlow', Icon: Droplet, th: 'ผิวโกลว์', en: 'Glow' },
+  { key: 'evenTone', Icon: Palette, th: 'สีผิวเนียน', en: 'Tone' },
+  { key: 'matte', Icon: Circle, th: 'ลดความมัน', en: 'Matte' },
+  { key: 'darkCircles', Icon: Moon, th: 'ลดใต้ตา', en: 'Under-Eye' },
+  { key: 'nasolabial', Icon: SmileLiftIcon, th: 'ร่องแก้ม', en: 'Lines' },
+  { key: 'brightenEyes', Icon: BigEyeIcon, th: 'ตาวิ้งใส', en: 'Eyes' },
+  { key: 'teethWhiten', Icon: TeethIcon, th: 'ฟันขาว', en: 'Teeth' },
 ];
 
 const RESHAPE_ITEMS: Array<{
   key: keyof ReshapeSettings;
-  icon: string;
+  Icon: IconComp;
   th: string;
   en: string;
   min: number;
   max: number;
 }> = [
-  { key: 'slimFace', icon: '💎', th: 'หน้าเรียว', en: 'Slim', min: -50, max: 100 },
-  { key: 'vLine', icon: '🔻', th: 'คาง V-Line', en: 'V-Line', min: 0, max: 100 },
-  { key: 'bigEyes', icon: '👀', th: 'ตาโต', en: 'Big Eyes', min: -40, max: 100 },
-  { key: 'slimNose', icon: '👃', th: 'ปีกจมูก', en: 'Slim Nose', min: -50, max: 100 },
-  { key: 'jawline', icon: '✨', th: 'เก็บกราม', en: 'Jawline', min: -50, max: 100 },
-  { key: 'cheekbones', icon: '🫧', th: 'โหนกแก้ม', en: 'Cheeks', min: -50, max: 100 },
-  { key: 'forehead', icon: '🎀', th: 'หน้าผาก', en: 'Forehead', min: -60, max: 60 },
-  { key: 'eyeTilt', icon: '🦊', th: 'หางตา', en: 'Eye Tilt', min: -100, max: 100 },
-  { key: 'eyeDistance', icon: '↔️', th: 'ระยะตา', en: 'Eye Dist', min: -100, max: 100 },
-  { key: 'noseBridge', icon: '📐', th: 'สันจมูก', en: 'Bridge', min: -100, max: 100 },
-  { key: 'noseTip', icon: '⬆️', th: 'ปลายจมูก', en: 'Nose Tip', min: -100, max: 100 },
-  { key: 'mouthSize', icon: '👄', th: 'ขนาดปาก', en: 'Mouth', min: -60, max: 80 },
-  { key: 'smileLift', icon: '😊', th: 'ยกมุมปาก', en: 'Smile', min: 0, max: 100 },
+  { key: 'slimFace', Icon: FaceSlimIcon, th: 'หน้าเรียว', en: 'Slim', min: -50, max: 100 },
+  { key: 'vLine', Icon: VLineIcon, th: 'คาง V-Line', en: 'V-Line', min: 0, max: 100 },
+  { key: 'hairVolume', Icon: Sparkles, th: 'วอลลุ่มผม', en: 'Hair Vol', min: 0, max: 100 },
+  { key: 'bigEyes', Icon: BigEyeIcon, th: 'ตาโต', en: 'Big Eyes', min: -40, max: 100 },
+  { key: 'slimNose', Icon: NoseIcon, th: 'ปีกจมูก', en: 'Nose', min: -50, max: 100 },
+  { key: 'jawline', Icon: VLineIcon, th: 'เก็บกราม', en: 'Jawline', min: -50, max: 100 },
+  { key: 'cheekbones', Icon: FaceSlimIcon, th: 'โหนกแก้ม', en: 'Cheeks', min: -50, max: 100 },
+  { key: 'forehead', Icon: Circle, th: 'หน้าผาก', en: 'Forehead', min: -60, max: 60 },
+  { key: 'eyeTilt', Icon: Eye, th: 'หางตา', en: 'Tilt', min: -100, max: 100 },
+  { key: 'eyeDistance', Icon: Focus, th: 'ระยะตา', en: 'Distance', min: -100, max: 100 },
+  { key: 'noseBridge', Icon: Triangle, th: 'สันจมูก', en: 'Bridge', min: -100, max: 100 },
+  { key: 'noseTip', Icon: NoseIcon, th: 'ปลายจมูก', en: 'Tip', min: -100, max: 100 },
+  { key: 'mouthSize', Icon: LipsIcon, th: 'ขนาดปาก', en: 'Mouth', min: -60, max: 80 },
+  { key: 'smileLift', Icon: SmileLiftIcon, th: 'มุมปากยิ้ม', en: 'Smile', min: 0, max: 100 },
 ];
 
 const ADJUST_ITEMS: Array<{
   key: keyof AdjustSettings;
-  icon: string;
+  Icon: IconComp;
   th: string;
   en: string;
   min: number;
   max: number;
 }> = [
-  { key: 'brightness', icon: '☀️', th: 'ความสว่าง', en: 'Bright', min: -100, max: 100 },
-  { key: 'exposure', icon: '🔆', th: 'รับแสง', en: 'Exposure', min: -100, max: 100 },
-  { key: 'contrast', icon: '◐', th: 'คอนทราสต์', en: 'Contrast', min: -100, max: 100 },
-  { key: 'saturation', icon: '🎨', th: 'ความสดสี', en: 'Saturate', min: -100, max: 100 },
-  { key: 'vibrance', icon: '🌈', th: 'อิ่มสี', en: 'Vibrance', min: -100, max: 100 },
-  { key: 'temperature', icon: '🌡️', th: 'อุณหภูมิ', en: 'Warmth', min: -100, max: 100 },
-  { key: 'tint', icon: '🩷', th: 'โทนชมพู', en: 'Tint', min: -100, max: 100 },
-  { key: 'highlights', icon: '✨', th: 'ไฮไลท์', en: 'High', min: -100, max: 100 },
-  { key: 'shadows', icon: '🌑', th: 'เงามืด', en: 'Shadow', min: -100, max: 100 },
-  { key: 'sharpness', icon: '🔺', th: 'คมชัด', en: 'Sharp', min: 0, max: 100 },
-  { key: 'clarity', icon: '💎', th: 'มิติภาพ', en: 'Clarity', min: -100, max: 100 },
-  { key: 'fade', icon: '🌫️', th: 'ฝ้าละมุน', en: 'Fade', min: 0, max: 100 },
-  { key: 'vignette', icon: '⭕', th: 'ขอบมืด', en: 'Vignette', min: -100, max: 100 },
-  { key: 'grain', icon: '🎞️', th: 'เกรนฟิล์ม', en: 'Grain', min: 0, max: 100 },
-  { key: 'whites', icon: '⬜', th: 'โทนขาว', en: 'Whites', min: -100, max: 100 },
-  { key: 'blacks', icon: '⬛', th: 'โทนดำ', en: 'Blacks', min: -100, max: 100 },
+  { key: 'brightness', Icon: Sun, th: 'ความสว่าง', en: 'Bright', min: -100, max: 100 },
+  { key: 'exposure', Icon: Sparkles, th: 'รับแสง', en: 'Exposure', min: -100, max: 100 },
+  { key: 'contrast', Icon: Contrast, th: 'คอนทราสต์', en: 'Contrast', min: -100, max: 100 },
+  { key: 'saturation', Icon: Droplet, th: 'ความสดสี', en: 'Saturate', min: -100, max: 100 },
+  { key: 'vibrance', Icon: Flame, th: 'อิ่มสี', en: 'Vibrance', min: -100, max: 100 },
+  { key: 'temperature', Icon: Thermometer, th: 'อุณหภูมิ', en: 'Warmth', min: -100, max: 100 },
+  { key: 'tint', Icon: Palette, th: 'โทนสี', en: 'Tint', min: -100, max: 100 },
+  { key: 'highlights', Icon: Sun, th: 'ไฮไลท์', en: 'High', min: -100, max: 100 },
+  { key: 'shadows', Icon: Moon, th: 'เงามืด', en: 'Shadow', min: -100, max: 100 },
+  { key: 'sharpness', Icon: Triangle, th: 'คมชัด', en: 'Sharp', min: 0, max: 100 },
+  { key: 'clarity', Icon: Sliders, th: 'มิติภาพ', en: 'Clarity', min: -100, max: 100 },
+  { key: 'fade', Icon: Circle, th: 'ฝ้าละมุน', en: 'Fade', min: 0, max: 100 },
+  { key: 'vignette', Icon: Focus, th: 'ขอบมืด', en: 'Vignette', min: -100, max: 100 },
+  { key: 'grain', Icon: Film, th: 'เกรนฟิล์ม', en: 'Grain', min: 0, max: 100 },
+  { key: 'whites', Icon: Circle, th: 'โทนขาว', en: 'Whites', min: -100, max: 100 },
+  { key: 'blacks', Icon: Circle, th: 'โทนดำ', en: 'Blacks', min: -100, max: 100 },
 ];
 
 export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
@@ -194,10 +234,12 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
 }) => {
   const t = useT(lang);
 
-  // Filter states
   const [filterCat, setFilterCat] = useState<FilterCategory>('featured');
   const [filterSearchOpen, setFilterSearchOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState('');
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [slidingVal, setSlidingVal] = useState<number | null>(null);
+
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('meitu_fav_filters');
@@ -207,12 +249,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     }
   });
 
-  // Makeup states (exact Screenshot 2 structure!)
   const [makeupMode, setMakeupMode] = useState<MakeupSubMode>('looks');
   const [makeupCat, setMakeupCat] = useState<MakeupCategory>('featured');
   const [makeupLookStrength, setMakeupLookStrength] = useState(80);
 
-  // Single active slider selectors (Meitu mobile pattern!)
   const [beautyItem, setBeautyItem] = useState<keyof Omit<BeautySettings, 'autoPreset'>>('smooth');
   const [reshapeItem, setReshapeItem] = useState<keyof ReshapeSettings>('slimFace');
   const [adjustItem, setAdjustItem] = useState<keyof AdjustSettings>('brightness');
@@ -234,32 +274,25 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     });
   };
 
-  // Filtered list for Filters tab
   const visibleFilters = useMemo(() => {
-    let list = MEITU_FILTERS.filter((f) => f.id !== 'original');
+    const list = MEITU_FILTERS.filter((f) => f.id !== 'original');
     if (filterQuery.trim()) {
       const q = filterQuery.toLowerCase();
       return list.filter(
         (f) => f.nameTh.toLowerCase().includes(q) || f.nameEn.toLowerCase().includes(q)
       );
     }
-    if (filterCat === 'favorites') {
-      return list.filter((f) => favorites.includes(f.id));
-    }
-    if (filterCat === 'featured') {
-      return list.filter((f) => f.featured);
-    }
+    if (filterCat === 'favorites') return list.filter((f) => favorites.includes(f.id));
+    if (filterCat === 'featured') return list.filter((f) => f.featured);
     return list.filter((f) => f.category === filterCat);
   }, [filterCat, filterQuery, favorites]);
 
-  // Filtered list for Makeup looks
   const visibleLooks = useMemo(() => {
     const looks = MAKEUP_LOOK_PRESETS.filter((l) => l.id !== 'none');
     if (makeupCat === 'featured') return looks.filter((l) => l.featured);
     return looks.filter((l) => l.category === makeupCat);
   }, [makeupCat]);
 
-  // Helper to apply a full makeup look scaled by master slider (0..100)
   const applyScaledLook = (lookId: string, scalePct: number) => {
     const look = MAKEUP_LOOK_PRESETS.find((l) => l.id === lookId);
     if (!look) return;
@@ -283,7 +316,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     }));
   };
 
-  // Render crisp Meitu white slider track with active white fill
+  /**
+   * EXACT Meitu iOS White Thin Slider (Matches Screenshots 1 & 2!)
+   * Clean thin white track, crisp 20px solid white thumb, floating numeric pill ONLY while dragging!
+   */
   const renderWhiteSlider = (
     val: number,
     min: number,
@@ -299,51 +335,89 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
         : `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255,255,255,0.22) ${pct}%, rgba(255,255,255,0.22) 100%)`;
 
     return (
-      <div className="flex items-center gap-3 px-4 py-2">
+      <div className="relative flex items-center gap-3.5 px-4 pt-3 pb-2">
+        {slidingVal !== null && (
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-black/80 border border-white/15 text-white text-[12px] font-semibold tabular-nums pointer-events-none">
+            {slidingVal > 0 && min < 0 ? `+${Math.round(slidingVal)}` : Math.round(slidingVal)}
+          </div>
+        )}
         {leftSlot && <div className="shrink-0">{leftSlot}</div>}
-        <div className="flex-1 flex items-center gap-2.5">
+        <div className="flex-1 flex items-center">
           <input
             type="range"
             min={min}
             max={max}
             value={val}
-            onChange={(e) => onChange(parseFloat(e.target.value))}
-            onMouseUp={commitHistory}
-            onTouchEnd={commitHistory}
+            onPointerDown={() => setSlidingVal(val)}
+            onChange={(e) => {
+              const nv = parseFloat(e.target.value);
+              setSlidingVal(nv);
+              onChange(nv);
+            }}
+            onPointerUp={() => {
+              setSlidingVal(null);
+              commitHistory();
+            }}
+            onPointerCancel={() => setSlidingVal(null)}
             className="meitu-white-slider"
             style={{ background: bg }}
           />
-          <span className="text-[11px] font-semibold text-zinc-300 tabular-nums w-8 text-right">
-            {val > 0 && min < 0 ? `+${Math.round(val)}` : Math.round(val)}
-          </span>
         </div>
         {onReset && (
           <button
             type="button"
             onClick={onReset}
-            className="p-1.5 text-zinc-300 hover:text-white active:scale-90 transition-transform"
+            className="p-1 text-white/85 hover:text-white active:scale-90 transition-transform shrink-0"
             title={t('reset')}
           >
-            <Eraser className="w-4 h-4" />
+            <Eraser className="w-[18px] h-[18px] stroke-[1.75]" />
           </button>
         )}
       </div>
     );
   };
 
-  // Bottom Confirm Bar with Meitu's iconic `✕ · Sub-Tabs (pink underline) · ✓`
+  /**
+   * EXACT Meitu iOS Bottom Confirm Bar (`✕` + subtle `ⓘ` · Sub-Mode Tabs with pink underline · `✓`)
+   * Matches Screenshots 1 & 2 pixel-for-pixel!
+   */
   const renderBottomConfirmBar = (
     tabs: Array<{ id: string; label: string; active: boolean; onClick: () => void }>
   ) => (
-    <div className="h-12 px-3 flex items-center justify-between border-t border-white/[0.06] safe-bottom">
-      <button
-        type="button"
-        onClick={onCancelTool}
-        className="w-10 h-10 flex items-center justify-center text-white/85 hover:text-white active:scale-90 transition-transform shrink-0"
-        aria-label="Cancel"
-      >
-        <X className="w-5 h-5" />
-      </button>
+    <div className="relative h-[50px] px-3 flex items-center justify-between safe-bottom bg-black">
+      {infoOpen && (
+        <div className="absolute bottom-14 left-4 right-4 p-3 rounded-2xl bg-[#1C1C1E]/95 backdrop-blur border border-white/10 text-[11px] text-zinc-300 flex items-center justify-between z-40">
+          <span>
+            {activeTab === 'filters'
+              ? `${lang === 'th' ? 'ฟิลเตอร์ที่เลือก' : 'Filter'}: ${state.filter.id} (${state.filter.intensity}%)`
+              : activeTab === 'makeup'
+                ? `${lang === 'th' ? 'เมคอัพลุค' : 'Look'}: ${state.makeup.preset} · Lip ${state.makeup.lipstickIntensity}% · Blush ${state.makeup.blushIntensity}%`
+                : `Meitu Studio AI · ${t(`tab_${activeTab}` as Parameters<typeof t>[0])}`}
+          </span>
+          <button type="button" onClick={() => setInfoOpen(false)} className="text-white ml-2">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          type="button"
+          onClick={onCancelTool}
+          className="w-9 h-9 flex items-center justify-center text-white/90 hover:text-white active:scale-90"
+          aria-label="Cancel"
+        >
+          <X className="w-[21px] h-[21px] stroke-[1.8]" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setInfoOpen((v) => !v)}
+          className="w-6 h-6 flex items-center justify-center text-white/55 hover:text-white/90 -ml-1 mb-3"
+          title="Info"
+        >
+          <Info className="w-4 h-4 stroke-[1.6]" />
+        </button>
+      </div>
 
       <div className="flex-1 flex items-center justify-center gap-5 overflow-x-auto no-scrollbar px-2">
         {tabs.map((tb) => (
@@ -351,8 +425,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             key={tb.id}
             type="button"
             onClick={tb.onClick}
-            className={`relative py-2 text-[13px] font-semibold whitespace-nowrap transition-colors ${
-              tb.active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+            className={`relative py-2 text-[13.5px] whitespace-nowrap transition-colors ${
+              tb.active ? 'text-white font-semibold' : 'text-[#8E8E93] font-normal'
             }`}
           >
             {tb.label}
@@ -366,16 +440,57 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
       <button
         type="button"
         onClick={onConfirmTool}
-        className="w-10 h-10 flex items-center justify-center text-white hover:text-[#FF4F7B] active:scale-90 transition-transform shrink-0"
+        className="w-10 h-10 flex items-center justify-center text-white hover:text-[#FF4F7B] active:scale-90 shrink-0"
         aria-label="Confirm"
       >
-        <Check className="w-5 h-5" />
+        <Check className="w-[22px] h-[22px] stroke-[2]" />
       </button>
     </div>
   );
 
+  /** Helper for crisp Meitu monochrome vector line-icon tiles (Beauty / Reshape / Adjust) */
+  const renderLineIconTile = (
+    key: string,
+    Icon: IconComp,
+    label: string,
+    active: boolean,
+    modified: boolean,
+    onClick: () => void
+  ) => (
+    <button
+      key={key}
+      type="button"
+      onClick={onClick}
+      className="shrink-0 w-[60px] flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+    >
+      <div
+        className={`w-11 h-11 rounded-full flex items-center justify-center relative transition-colors ${
+          active
+            ? 'bg-white text-black'
+            : 'bg-[#18181A] text-white/90'
+        }`}
+      >
+        <Icon className="w-5 h-5 stroke-[1.6]" />
+        {modified && (
+          <span
+            className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${
+              active ? 'bg-[#FF4F7B] ring-2 ring-black' : 'bg-[#FF4F7B]'
+            }`}
+          />
+        )}
+      </div>
+      <span
+        className={`text-[11px] truncate w-full text-center ${
+          active ? 'text-white font-medium' : 'text-[#8E8E93]'
+        }`}
+      >
+        {label}
+      </span>
+    </button>
+  );
+
   // =========================================================================
-  // 1. FILTERS / ADJUST / HSL / CURVES GROUP (EXACT MATCH TO SCREENSHOT 1!)
+  // 1. FILTERS / ADJUST / HSL / CURVES GROUP (EXACT SCREENSHOT 1!)
   // =========================================================================
   if (
     activeTab === 'filters' ||
@@ -384,37 +499,16 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     activeTab === 'curves'
   ) {
     const colorTabs = [
-      {
-        id: 'adjust',
-        label: lang === 'th' ? 'ปรับสี' : 'Adjust',
-        active: activeTab === 'adjust',
-        onClick: () => setActiveTab('adjust'),
-      },
-      {
-        id: 'filters',
-        label: lang === 'th' ? 'ฟิลเตอร์' : 'Filters',
-        active: activeTab === 'filters',
-        onClick: () => setActiveTab('filters'),
-      },
-      {
-        id: 'hsl',
-        label: 'HSL',
-        active: activeTab === 'hsl',
-        onClick: () => setActiveTab('hsl'),
-      },
-      {
-        id: 'curves',
-        label: lang === 'th' ? 'กราฟสี' : 'Curves',
-        active: activeTab === 'curves',
-        onClick: () => setActiveTab('curves'),
-      },
+      { id: 'adjust', label: lang === 'th' ? 'ปรับสี' : 'Adjust', active: activeTab === 'adjust', onClick: () => setActiveTab('adjust') },
+      { id: 'filters', label: lang === 'th' ? 'ฟิลเตอร์' : 'Filters', active: activeTab === 'filters', onClick: () => setActiveTab('filters') },
+      { id: 'hsl', label: 'HSL', active: activeTab === 'hsl', onClick: () => setActiveTab('hsl') },
+      { id: 'curves', label: lang === 'th' ? 'กราฟสี' : 'Curves', active: activeTab === 'curves', onClick: () => setActiveTab('curves') },
     ];
 
-    // 1A: FILTERS (Exact Screenshot 1 replica!)
     if (activeTab === 'filters') {
       return (
         <div className="bg-black text-white select-none">
-          {/* Row 1: "ปรับสีอัตโนมัติ" toggle + White Intensity Slider + Eraser */}
+          {/* Row 1: ปรับสีอัตโนมัติ Pill Toggle + White Thin Slider + Tilted Eraser */}
           {renderWhiteSlider(
             state.filter.id === 'original' ? 0 : state.filter.intensity,
             0,
@@ -429,14 +523,14 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             <button
               type="button"
               onClick={onToggleAutoColor}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-zinc-900 border border-white/10 text-[11px] font-medium"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-[#1C1C1E] text-[11px] font-medium"
             >
-              <span className="text-zinc-200 whitespace-nowrap">
+              <span className="text-white/90 whitespace-nowrap">
                 {lang === 'th' ? 'ปรับสีอัตโนมัติ' : 'Auto Color'}
               </span>
               <span
                 className={`w-7 h-4 rounded-full relative transition-colors ${
-                  autoColor ? 'bg-[#FF4F7B]' : 'bg-zinc-700'
+                  autoColor ? 'bg-[#FF4F7B]' : 'bg-[#3A3A3C]'
                 }`}
               >
                 <span
@@ -448,30 +542,28 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             </button>
           )}
 
-          {/* Optional Search Input */}
           {filterSearchOpen && (
             <div className="px-4 pb-2">
               <input
                 type="text"
                 value={filterQuery}
                 onChange={(e) => setFilterQuery(e.target.value)}
-                placeholder={lang === 'th' ? 'ค้นหาฟิลเตอร์ เช่น แฟลช, ฝ้าย, ฟิล์ม...' : 'Search filter...'}
-                className="w-full px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-700 text-xs text-white outline-none focus:border-[#FF4F7B]"
+                placeholder={lang === 'th' ? 'ค้นหาฟิลเตอร์...' : 'Search filter...'}
+                className="w-full px-3 py-1.5 rounded-full bg-[#1C1C1E] text-xs text-white outline-none"
               />
             </div>
           )}
 
-          {/* Row 2: Category Text Strip (⊘ · 🔍 · รายการโปรด · แบบเด่นๆ · ใหม่ · พื้นฐาน · แสงแฟลช ...) */}
+          {/* Row 2: ⊘ · 🔍 · รายการโปรด · แบบเด่นๆ · ใหม่ · พื้นฐาน · แสงแฟลช */}
           <div className="flex items-center gap-4 px-4 py-1.5 overflow-x-auto no-scrollbar">
             <button
               type="button"
               onClick={() =>
                 updateState((prev) => ({ ...prev, filter: { id: 'original', intensity: 80 } }), true)
               }
-              className={`shrink-0 ${state.filter.id === 'original' ? 'text-white' : 'text-zinc-400'}`}
-              title={lang === 'th' ? 'ต้นฉบับ' : 'None'}
+              className={`shrink-0 ${state.filter.id === 'original' ? 'text-white' : 'text-white/75'}`}
             >
-              <Ban className="w-4 h-4" />
+              <Ban className="w-[18px] h-[18px] stroke-[1.7]" />
             </button>
             <button
               type="button"
@@ -479,9 +571,9 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 setFilterSearchOpen((o) => !o);
                 setFilterQuery('');
               }}
-              className={`shrink-0 ${filterSearchOpen ? 'text-[#FF4F7B]' : 'text-zinc-400'}`}
+              className={`shrink-0 ${filterSearchOpen ? 'text-[#FF4F7B]' : 'text-white/75'}`}
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-[18px] h-[18px] stroke-[1.7]" />
             </button>
             {FILTER_CATEGORIES.map((cat) => (
               <button
@@ -491,10 +583,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   setFilterCat(cat.id);
                   setFilterQuery('');
                 }}
-                className={`text-xs whitespace-nowrap transition-colors ${
+                className={`text-[12.5px] whitespace-nowrap transition-colors ${
                   filterCat === cat.id && !filterQuery
                     ? 'text-white font-semibold'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    : 'text-[#8E8E93]'
                 }`}
               >
                 {lang === 'th' ? cat.nameTh : cat.nameEn}
@@ -502,18 +594,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             ))}
           </div>
 
-          {/* Row 3: LIVE PHOTO THUMBNAIL CARDS */}
-          <div className="flex items-start gap-2.5 px-4 py-2 overflow-x-auto no-scrollbar">
-            {/* All / Store icon tile like Screenshot 1 */}
+          {/* Row 3: Live Square Photo Thumbnails (`ทั้งหมด`, `ฝ้าย`, `แฟลช Ricoh`, `แฟลชผิวใส`, ...) */}
+          <div className="flex items-start gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
             <button
               type="button"
               onClick={() => setFilterCat('featured')}
-              className="shrink-0 w-16 flex flex-col items-center gap-1.5"
+              className="shrink-0 w-[62px] flex flex-col items-center gap-1.5"
             >
-              <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-400">
-                <Store className="w-5 h-5" />
+              <div className="w-[62px] h-[62px] rounded-[12px] bg-[#18181A] flex items-center justify-center text-[#8E8E93]">
+                <Store className="w-5 h-5 stroke-[1.6]" />
               </div>
-              <span className="text-[11px] text-zinc-400 truncate w-full text-center">
+              <span className="text-[11px] text-[#8E8E93] truncate w-full text-center">
                 {lang === 'th' ? 'ทั้งหมด' : 'All'}
               </span>
             </button>
@@ -523,7 +614,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               const thumb = filterThumbs[f.id];
               const isFav = favorites.includes(f.id);
               return (
-                <div key={f.id} className="shrink-0 w-16 flex flex-col items-center gap-1.5 relative">
+                <div key={f.id} className="shrink-0 w-[62px] flex flex-col items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => {
@@ -542,8 +633,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                         );
                       }
                     }}
-                    className={`relative w-16 h-16 rounded-xl overflow-hidden transition-transform active:scale-95 ${
-                      active ? 'ring-2 ring-white' : 'ring-1 ring-white/10'
+                    className={`relative w-[62px] h-[62px] rounded-[12px] overflow-hidden transition-transform active:scale-95 ${
+                      active ? 'ring-[1.8px] ring-white' : ''
                     }`}
                   >
                     {thumb ? (
@@ -556,31 +647,25 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                         }}
                       />
                     )}
-
-                    {/* Meitu signature mini pink heart badge on featured filters */}
                     {f.hotBadge && !active && (
-                      <span className="absolute top-1 left-1 w-4 h-4 rounded-full bg-[#FF4F7B] text-white flex items-center justify-center shadow">
+                      <span className="absolute top-1 left-1 w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#FF5588] to-[#FF85A8] text-white flex items-center justify-center shadow-sm">
                         <Heart className="w-2.5 h-2.5 fill-white" />
                       </span>
                     )}
-
-                    {/* Favorite mini star */}
                     {isFav && active && (
                       <span className="absolute top-1 right-1 text-[#FF4F7B]">
                         <Heart className="w-3 h-3 fill-[#FF4F7B]" />
                       </span>
                     )}
-
-                    {/* Active overlay + centered white checkmark (Exact Screenshot 1!) */}
                     {active && (
                       <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                        <Check className="w-6 h-6 text-white stroke-[2.5]" />
+                        <Check className="w-6 h-6 text-white stroke-[2.2]" />
                       </div>
                     )}
                   </button>
                   <span
                     className={`text-[11px] truncate w-full text-center ${
-                      active ? 'text-white font-semibold' : 'text-zinc-400'
+                      active ? 'text-white font-medium' : 'text-[#8E8E93]'
                     }`}
                   >
                     {lang === 'th' ? f.nameTh : f.nameEn}
@@ -590,21 +675,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             })}
           </div>
 
-          {/* Row 4: Bottom Confirm Bar */}
           {renderBottomConfirmBar(colorTabs)}
         </div>
       );
     }
 
-    // 1B: ADJUST (Single white slider + horizontal tile strip!)
     if (activeTab === 'adjust') {
       const currentMeta = ADJUST_ITEMS.find((i) => i.key === adjustItem) ?? ADJUST_ITEMS[0];
-      const currentVal = state.adjust[currentMeta.key];
-
       return (
         <div className="bg-black text-white select-none">
           {renderWhiteSlider(
-            currentVal,
+            state.adjust[currentMeta.key],
             currentMeta.min,
             currentMeta.max,
             (v) =>
@@ -618,48 +699,23 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 true
               )
           )}
-
           <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
-            {ADJUST_ITEMS.map((item) => {
-              const active = adjustItem === item.key;
-              const modified = Math.abs(state.adjust[item.key]) > 0.5;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setAdjustItem(item.key)}
-                  className="shrink-0 w-15 flex flex-col items-center gap-1.5"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg relative transition-all ${
-                      active
-                        ? 'bg-white text-black shadow-md'
-                        : 'bg-zinc-900 text-zinc-200 border border-white/10'
-                    }`}
-                  >
-                    <span>{item.icon}</span>
-                    {modified && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FF4F7B]" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-[10px] truncate w-full text-center ${
-                      active ? 'text-white font-semibold' : 'text-zinc-400'
-                    }`}
-                  >
-                    {lang === 'th' ? item.th : item.en}
-                  </span>
-                </button>
-              );
-            })}
+            {ADJUST_ITEMS.map((item) =>
+              renderLineIconTile(
+                item.key,
+                item.Icon,
+                lang === 'th' ? item.th : item.en,
+                adjustItem === item.key,
+                Math.abs(state.adjust[item.key]) > 0.5,
+                () => setAdjustItem(item.key)
+              )
+            )}
           </div>
-
           {renderBottomConfirmBar(colorTabs)}
         </div>
       );
     }
 
-    // 1C: HSL
     if (activeTab === 'hsl') {
       const ch = state.hsl[hslChannel];
       return (
@@ -681,7 +737,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 }),
                 true
               ),
-            <div className="flex gap-1 bg-zinc-900 rounded-full p-0.5">
+            <div className="flex gap-1 bg-[#1C1C1E] rounded-full p-0.5">
               {(
                 [
                   ['h', 'H'],
@@ -694,7 +750,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   type="button"
                   onClick={() => setHslProp(k)}
                   className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    hslProp === k ? 'bg-white text-black' : 'text-zinc-400'
+                    hslProp === k ? 'bg-white text-black' : 'text-[#8E8E93]'
                   }`}
                 >
                   {lbl}
@@ -716,33 +772,31 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   className="shrink-0 flex flex-col items-center gap-1.5"
                 >
                   <span
-                    className={`w-8 h-8 rounded-full transition-transform relative ${
+                    className={`w-7 h-7 rounded-full transition-transform relative ${
                       active ? 'ring-2 ring-white scale-110' : 'opacity-80'
                     }`}
                     style={{ background: c.color }}
                   >
                     {touched && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-white border-2 border-black" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-white border border-black" />
                     )}
                   </span>
-                  <span className={`text-[10px] ${active ? 'text-white font-semibold' : 'text-zinc-500'}`}>
+                  <span className={`text-[10px] ${active ? 'text-white font-medium' : 'text-[#8E8E93]'}`}>
                     {lang === 'th' ? c.th : c.en}
                   </span>
                 </button>
               );
             })}
           </div>
-
           {renderBottomConfirmBar(colorTabs)}
         </div>
       );
     }
 
-    // 1D: CURVES
     return (
       <div className="bg-black text-white select-none">
         <div className="px-4 py-2 max-h-56 overflow-y-auto">
-          <div className="max-w-[220px] mx-auto">
+          <div className="max-w-[210px] mx-auto">
             <CurveEditor
               curves={state.curves}
               onChange={(next) => updateState((prev) => ({ ...prev, curves: next }))}
@@ -759,7 +813,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
   }
 
   // =========================================================================
-  // 2. MAKEUP STUDIO (EXACT MATCH TO SCREENSHOT 2!)
+  // 2. MAKEUP STUDIO (EXACT SCREENSHOT 2!)
   // =========================================================================
   if (activeTab === 'makeup') {
     const m = state.makeup;
@@ -791,7 +845,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           </div>
         )}
 
-        {/* Row 1: Single Precision White Slider */}
+        {/* Row 1: Single Clean White Slider */}
         {makeupMode === 'looks' &&
           renderWhiteSlider(
             m.preset === 'none' ? 0 : makeupLookStrength,
@@ -800,11 +854,6 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             (v) => {
               setMakeupLookStrength(v);
               if (m.preset !== 'none') applyScaledLook(m.preset, v);
-            },
-            () => {
-              setMakeupLookStrength(0);
-              applyScaledLook('none', 0);
-              commitHistory();
             }
           )}
 
@@ -815,14 +864,14 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             100,
             (v) => setM({ lipstickIntensity: v }),
             () => setM({ lipstickIntensity: 0 }, true),
-            <div className="flex gap-1 bg-zinc-900 rounded-full p-0.5">
+            <div className="flex gap-1 bg-[#1C1C1E] rounded-full p-0.5">
               {(['matte', 'velvet', 'gloss'] as LipFinish[]).map((fin) => (
                 <button
                   key={fin}
                   type="button"
                   onClick={() => setM({ lipstickFinish: fin }, true)}
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                    m.lipstickFinish === fin ? 'bg-white text-black' : 'text-zinc-400'
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                    m.lipstickFinish === fin ? 'bg-white text-black' : 'text-[#8E8E93]'
                   }`}
                 >
                   {fin === 'matte' ? t('finishMatte') : fin === 'velvet' ? t('finishVelvet') : t('finishGloss')}
@@ -832,12 +881,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           )}
 
         {makeupMode === 'brows' &&
-          renderWhiteSlider(
-            m.eyebrowIntensity,
-            0,
-            100,
-            (v) => setM({ eyebrowIntensity: v }),
-            () => setM({ eyebrowIntensity: 0 }, true)
+          renderWhiteSlider(m.eyebrowIntensity, 0, 100, (v) => setM({ eyebrowIntensity: v }), () =>
+            setM({ eyebrowIntensity: 0 }, true)
           )}
 
         {makeupMode === 'eyes' &&
@@ -846,19 +891,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             0,
             100,
             (v) =>
-              eyeSub === 'shadow'
-                ? setM({ eyeshadowIntensity: v })
-                : setM({ eyelinerIntensity: v }),
+              eyeSub === 'shadow' ? setM({ eyeshadowIntensity: v }) : setM({ eyelinerIntensity: v }),
             () =>
               eyeSub === 'shadow'
                 ? setM({ eyeshadowIntensity: 0 }, true)
                 : setM({ eyelinerIntensity: 0 }, true),
-            <div className="flex gap-1 bg-zinc-900 rounded-full p-0.5">
+            <div className="flex gap-1 bg-[#1C1C1E] rounded-full p-0.5">
               <button
                 type="button"
                 onClick={() => setEyeSub('shadow')}
-                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                  eyeSub === 'shadow' ? 'bg-white text-black' : 'text-zinc-400'
+                className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  eyeSub === 'shadow' ? 'bg-white text-black' : 'text-[#8E8E93]'
                 }`}
               >
                 {t('eyeshadow')}
@@ -866,8 +909,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               <button
                 type="button"
                 onClick={() => setEyeSub('liner')}
-                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                  eyeSub === 'liner' ? 'bg-white text-black' : 'text-zinc-400'
+                className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  eyeSub === 'liner' ? 'bg-white text-black' : 'text-[#8E8E93]'
                 }`}
               >
                 {t('eyeliner')}
@@ -885,12 +928,12 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 ? setM({ contourIntensity: v })
                 : setM({ highlightIntensity: v }),
             () => setM({ contourIntensity: 0, highlightIntensity: 0 }, true),
-            <div className="flex gap-1 bg-zinc-900 rounded-full p-0.5">
+            <div className="flex gap-1 bg-[#1C1C1E] rounded-full p-0.5">
               <button
                 type="button"
                 onClick={() => setContourSub('contour')}
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                  contourSub === 'contour' ? 'bg-white text-black' : 'text-zinc-400'
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium ${
+                  contourSub === 'contour' ? 'bg-white text-black' : 'text-[#8E8E93]'
                 }`}
               >
                 {t('contour')}
@@ -898,8 +941,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               <button
                 type="button"
                 onClick={() => setContourSub('highlight')}
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                  contourSub === 'highlight' ? 'bg-white text-black' : 'text-zinc-400'
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium ${
+                  contourSub === 'highlight' ? 'bg-white text-black' : 'text-[#8E8E93]'
                 }`}
               >
                 {t('highlight')}
@@ -914,7 +957,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             100,
             (v) => setM({ blushIntensity: v }),
             () => setM({ blushIntensity: 0 }, true),
-            <div className="flex gap-1 bg-zinc-900 rounded-full p-0.5">
+            <div className="flex gap-1 bg-[#1C1C1E] rounded-full p-0.5">
               {(
                 [
                   ['undereye', lang === 'th' ? 'ใต้ตา' : 'Eye'],
@@ -927,8 +970,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   key={st}
                   type="button"
                   onClick={() => setM({ blushStyle: st }, true)}
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                    m.blushStyle === st ? 'bg-white text-black' : 'text-zinc-400'
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                    m.blushStyle === st ? 'bg-white text-black' : 'text-[#8E8E93]'
                   }`}
                 >
                   {lbl}
@@ -938,28 +981,22 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           )}
 
         {makeupMode === 'contacts' &&
-          renderWhiteSlider(
-            m.contactsIntensity,
-            0,
-            100,
-            (v) => setM({ contactsIntensity: v }),
-            () => setM({ contactsIntensity: 0 }, true)
+          renderWhiteSlider(m.contactsIntensity, 0, 100, (v) => setM({ contactsIntensity: v }), () =>
+            setM({ contactsIntensity: 0 }, true)
           )}
 
-        {/* Row 2 + Row 3: Makeup Looks Carousel (Exact Screenshot 2!) OR Swatch Strip */}
+        {/* Row 2 + Row 3: Exact Screenshot 2 Makeup Looks Strip OR Swatch Circles */}
         {makeupMode === 'looks' ? (
           <>
             <div className="flex items-center gap-5 px-4 py-1.5 overflow-x-auto no-scrollbar">
-              <Search className="w-4 h-4 text-zinc-400 shrink-0" />
+              <Search className="w-[18px] h-[18px] text-white/75 shrink-0 stroke-[1.7]" />
               {MAKEUP_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setMakeupCat(cat.id)}
-                  className={`text-xs whitespace-nowrap transition-colors ${
-                    makeupCat === cat.id
-                      ? 'text-white font-semibold'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                  className={`text-[12.5px] whitespace-nowrap transition-colors ${
+                    makeupCat === cat.id ? 'text-white font-semibold' : 'text-[#8E8E93]'
                   }`}
                 >
                   {lang === 'th' ? cat.nameTh : cat.nameEn}
@@ -967,8 +1004,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               ))}
             </div>
 
-            <div className="flex items-start gap-2.5 px-4 py-2 overflow-x-auto no-scrollbar">
-              {/* Original (ต้นฉบับ) tile */}
+            <div className="flex items-start gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => {
@@ -976,18 +1012,18 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   applyScaledLook('none', 0);
                   commitHistory();
                 }}
-                className="shrink-0 w-16 flex flex-col items-center gap-1.5"
+                className="shrink-0 w-[62px] flex flex-col items-center gap-1.5"
               >
                 <div
-                  className={`w-16 h-16 rounded-xl bg-zinc-900 flex items-center justify-center ${
-                    m.preset === 'none' ? 'ring-2 ring-white text-white' : 'text-zinc-500'
+                  className={`w-[62px] h-[62px] rounded-[12px] bg-[#18181A] flex items-center justify-center ${
+                    m.preset === 'none' ? 'ring-[1.8px] ring-white text-white' : 'text-[#6E6E73]'
                   }`}
                 >
-                  <Ban className="w-5 h-5" />
+                  <Ban className="w-5 h-5 stroke-[1.7]" />
                 </div>
                 <span
                   className={`text-[11px] truncate w-full text-center ${
-                    m.preset === 'none' ? 'text-white font-semibold' : 'text-zinc-400'
+                    m.preset === 'none' ? 'text-white font-medium' : 'text-[#8E8E93]'
                   }`}
                 >
                   {lang === 'th' ? 'ต้นฉบับ' : 'Original'}
@@ -1007,11 +1043,11 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                       applyScaledLook(look.id, nextStr);
                       commitHistory();
                     }}
-                    className="shrink-0 w-16 flex flex-col items-center gap-1.5"
+                    className="shrink-0 w-[62px] flex flex-col items-center gap-1.5"
                   >
                     <div
-                      className={`relative w-16 h-16 rounded-xl overflow-hidden transition-transform active:scale-95 ${
-                        active ? 'ring-2 ring-white' : 'ring-1 ring-white/10'
+                      className={`relative w-[62px] h-[62px] rounded-[12px] overflow-hidden active:scale-95 transition-transform ${
+                        active ? 'ring-[1.8px] ring-white' : ''
                       }`}
                     >
                       {thumb ? (
@@ -1025,22 +1061,24 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                         />
                       )}
                       {look.hotBadge && !active && (
-                        <span className="absolute top-1 left-1 w-4 h-4 rounded-full bg-[#FF4F7B] text-white flex items-center justify-center shadow">
+                        <span className="absolute top-1 left-1 w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#FF5588] to-[#FF85A8] text-white flex items-center justify-center shadow-sm">
                           <Heart className="w-2.5 h-2.5 fill-white" />
                         </span>
                       )}
                       {active && (
                         <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                          <Check className="w-6 h-6 text-white stroke-[2.5]" />
+                          <Check className="w-6 h-6 text-white stroke-[2.2]" />
                         </div>
                       )}
                     </div>
                     <span
                       className={`text-[11px] truncate w-full text-center flex items-center justify-center gap-0.5 ${
-                        active ? 'text-white font-semibold' : 'text-zinc-400'
+                        active ? 'text-white font-medium' : 'text-[#8E8E93]'
                       }`}
                     >
-                      {look.sparkleName && <Sparkles className="w-2.5 h-2.5 text-sky-300 shrink-0" />}
+                      {look.sparkleName && (
+                        <Sparkles className="w-2.5 h-2.5 text-sky-300 shrink-0" />
+                      )}
                       <span className="truncate">{lang === 'th' ? look.nameTh : look.nameEn}</span>
                     </span>
                   </button>
@@ -1049,7 +1087,6 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             </div>
           </>
         ) : (
-          /* Swatch / Option Carousel for individual makeup parts */
           <div className="px-4 py-3 flex items-center gap-3 overflow-x-auto no-scrollbar">
             {makeupMode === 'lips' &&
               LIPSTICK_SWATCHES.map((sw) => (
@@ -1068,12 +1105,12 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   className="shrink-0 flex flex-col items-center gap-1.5"
                 >
                   <span
-                    className={`w-10 h-10 rounded-full border-2 transition-transform ${
-                      m.lipstickColor === sw.color ? 'border-white scale-110' : 'border-white/25'
+                    className={`w-9 h-9 rounded-full border-2 transition-transform ${
+                      m.lipstickColor === sw.color ? 'border-white scale-110' : 'border-white/20'
                     }`}
                     style={{ background: sw.color }}
                   />
-                  <span className="text-[10px] text-zinc-400">{sw.name}</span>
+                  <span className="text-[10px] text-[#8E8E93]">{sw.name}</span>
                 </button>
               ))}
 
@@ -1094,12 +1131,12 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   className="shrink-0 flex flex-col items-center gap-1.5"
                 >
                   <span
-                    className={`w-10 h-10 rounded-full border-2 ${
-                      m.blushColor === sw.color ? 'border-white scale-110' : 'border-white/25'
+                    className={`w-9 h-9 rounded-full border-2 ${
+                      m.blushColor === sw.color ? 'border-white scale-110' : 'border-white/20'
                     }`}
                     style={{ background: sw.color }}
                   />
-                  <span className="text-[10px] text-zinc-400">{sw.name}</span>
+                  <span className="text-[10px] text-[#8E8E93]">{sw.name}</span>
                 </button>
               ))}
 
@@ -1120,16 +1157,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   className="shrink-0 flex flex-col items-center gap-1.5"
                 >
                   <span
-                    className={`w-10 h-10 rounded-full border-2 ${
-                      m.eyebrowColor === sw.color ? 'border-white scale-110' : 'border-white/25'
+                    className={`w-9 h-9 rounded-full border-2 ${
+                      m.eyebrowColor === sw.color ? 'border-white scale-110' : 'border-white/20'
                     }`}
                     style={{ background: sw.color }}
                   />
-                  <span className="text-[10px] text-zinc-400">{sw.name}</span>
+                  <span className="text-[10px] text-[#8E8E93]">{sw.name}</span>
                 </button>
               ))}
 
-            {makeupMode === 'eyes' && eyeSub === 'shadow' &&
+            {makeupMode === 'eyes' &&
+              eyeSub === 'shadow' &&
               EYESHADOW_SWATCHES.map((sw) => (
                 <button
                   key={sw.color}
@@ -1146,16 +1184,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   className="shrink-0 flex flex-col items-center gap-1.5"
                 >
                   <span
-                    className={`w-10 h-10 rounded-full border-2 ${
-                      m.eyeshadowColor === sw.color ? 'border-white scale-110' : 'border-white/25'
+                    className={`w-9 h-9 rounded-full border-2 ${
+                      m.eyeshadowColor === sw.color ? 'border-white scale-110' : 'border-white/20'
                     }`}
                     style={{ background: sw.color }}
                   />
-                  <span className="text-[10px] text-zinc-400">{sw.name}</span>
+                  <span className="text-[10px] text-[#8E8E93]">{sw.name}</span>
                 </button>
               ))}
 
-            {makeupMode === 'eyes' && eyeSub === 'liner' &&
+            {makeupMode === 'eyes' &&
+              eyeSub === 'liner' &&
               (
                 [
                   ['natural', t('linerNatural')],
@@ -1175,8 +1214,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                       true
                     )
                   }
-                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold shrink-0 ${
-                    m.eyelinerStyle === st ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-300'
+                  className={`px-4 py-2 rounded-full text-xs font-medium shrink-0 ${
+                    m.eyelinerStyle === st ? 'bg-white text-black' : 'bg-[#18181A] text-zinc-300'
                   }`}
                 >
                   {lbl}
@@ -1200,28 +1239,27 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   className="shrink-0 flex flex-col items-center gap-1.5"
                 >
                   <span
-                    className={`w-10 h-10 rounded-full border-2 ${
-                      m.contactsColor === sw.color ? 'border-white scale-110' : 'border-white/25'
+                    className={`w-9 h-9 rounded-full border-2 ${
+                      m.contactsColor === sw.color ? 'border-white scale-110' : 'border-white/20'
                     }`}
                     style={{
                       background: `radial-gradient(circle, #111 22%, ${sw.color} 38%, #111 94%)`,
                     }}
                   />
-                  <span className="text-[10px] text-zinc-400">{sw.name}</span>
+                  <span className="text-[10px] text-[#8E8E93]">{sw.name}</span>
                 </button>
               ))}
 
             {makeupMode === 'contour' && (
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-[#8E8E93]">
                 {lang === 'th'
-                  ? 'เลื่อนสไลเดอร์ด้านบนเพื่อปรับคอนทัวร์กรอบหน้า เหลาจมูก และไฮไลท์ถุงใต้ตาวิ้ง'
-                  : 'Drag slider above for nose/jaw contour and highlight shimmer'}
+                  ? 'เลื่อนแถบด้านบนเพื่อปรับคอนทัวร์กรอบหน้า เหลาสันจมูก และไฮไลท์ถุงใต้ตา'
+                  : 'Slide above to adjust nose/jaw contour and under-eye shimmer'}
               </p>
             )}
           </div>
         )}
 
-        {/* Row 4: Exact Screenshot 2 Bottom Confirm Bar */}
         {renderBottomConfirmBar(bottomTabs)}
       </div>
     );
@@ -1237,38 +1275,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     activeTab === 'liquify'
   ) {
     const retouchTabs = [
-      {
-        id: 'beauty',
-        label: lang === 'th' ? 'บิวตี้ผิว' : 'Beauty',
-        active: activeTab === 'beauty',
-        onClick: () => setActiveTab('beauty'),
-      },
-      {
-        id: 'reshape',
-        label: lang === 'th' ? 'ปรับโครงหน้า' : 'Reshape',
-        active: activeTab === 'reshape',
-        onClick: () => setActiveTab('reshape'),
-      },
-      {
-        id: 'erase',
-        label: lang === 'th' ? 'ยางลบสิว' : 'Eraser',
-        active: activeTab === 'erase',
-        onClick: () => setActiveTab('erase'),
-      },
-      {
-        id: 'liquify',
-        label: lang === 'th' ? 'ลิควิฟาย/สูง' : 'Liquify',
-        active: activeTab === 'liquify',
-        onClick: () => setActiveTab('liquify'),
-      },
+      { id: 'beauty', label: lang === 'th' ? 'บิวตี้ผิว' : 'Beauty', active: activeTab === 'beauty', onClick: () => setActiveTab('beauty') },
+      { id: 'reshape', label: lang === 'th' ? 'โครงหน้า' : 'Reshape', active: activeTab === 'reshape', onClick: () => setActiveTab('reshape') },
+      { id: 'erase', label: lang === 'th' ? 'ยางลบสิว' : 'Eraser', active: activeTab === 'erase', onClick: () => setActiveTab('erase') },
+      { id: 'liquify', label: lang === 'th' ? 'ลิควิฟาย' : 'Liquify', active: activeTab === 'liquify', onClick: () => setActiveTab('liquify') },
     ];
 
     if (activeTab === 'beauty') {
-      const currentVal = state.beauty[beautyItem];
       return (
         <div className="bg-black text-white select-none">
           {renderWhiteSlider(
-            currentVal,
+            state.beauty[beautyItem],
             0,
             100,
             (v) =>
@@ -1283,9 +1300,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               )
           )}
 
-          {/* Auto Beauty Quick Presets Pill Bar */}
-          <div className="flex items-center gap-2 px-4 py-1 overflow-x-auto no-scrollbar">
-            <span className="text-[11px] text-zinc-500 shrink-0">{t('autoBeauty')}:</span>
+          <div className="flex items-center gap-3 px-4 py-1 overflow-x-auto no-scrollbar">
             {AUTO_BEAUTY_PRESETS.map((p) => (
               <button
                 key={p.id}
@@ -1300,10 +1315,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                     true
                   )
                 }
-                className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap ${
-                  state.beauty.autoPreset === p.id
-                    ? 'bg-white text-black font-semibold'
-                    : 'bg-zinc-900 text-zinc-300'
+                className={`text-[12px] whitespace-nowrap transition-colors ${
+                  state.beauty.autoPreset === p.id ? 'text-white font-semibold' : 'text-[#8E8E93]'
                 }`}
               >
                 {lang === 'th' ? p.nameTh : p.nameEn}
@@ -1311,42 +1324,18 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             ))}
           </div>
 
-          {/* Horizontal Beauty Tool Strip */}
           <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
-            {BEAUTY_ITEMS.map((item) => {
-              const active = beautyItem === item.key;
-              const modified = state.beauty[item.key] > 0;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setBeautyItem(item.key)}
-                  className="shrink-0 w-15 flex flex-col items-center gap-1"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg relative ${
-                      active
-                        ? 'bg-white text-black'
-                        : 'bg-zinc-900 text-zinc-200 border border-white/10'
-                    }`}
-                  >
-                    {item.icon}
-                    {modified && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FF4F7B]" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-[10px] truncate w-full text-center ${
-                      active ? 'text-white font-semibold' : 'text-zinc-400'
-                    }`}
-                  >
-                    {lang === 'th' ? item.th : item.en}
-                  </span>
-                </button>
-              );
-            })}
+            {BEAUTY_ITEMS.map((item) =>
+              renderLineIconTile(
+                item.key,
+                item.Icon,
+                lang === 'th' ? item.th : item.en,
+                beautyItem === item.key,
+                state.beauty[item.key] > 0,
+                () => setBeautyItem(item.key)
+              )
+            )}
           </div>
-
           {renderBottomConfirmBar(retouchTabs)}
         </div>
       );
@@ -1376,42 +1365,18 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 true
               )
           )}
-
           <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
-            {RESHAPE_ITEMS.map((item) => {
-              const active = reshapeItem === item.key;
-              const modified = Math.abs(state.reshape[item.key]) > 0.5;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setReshapeItem(item.key)}
-                  className="shrink-0 w-15 flex flex-col items-center gap-1"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg relative ${
-                      active
-                        ? 'bg-white text-black'
-                        : 'bg-zinc-900 text-zinc-200 border border-white/10'
-                    }`}
-                  >
-                    {item.icon}
-                    {modified && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FF4F7B]" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-[10px] truncate w-full text-center ${
-                      active ? 'text-white font-semibold' : 'text-zinc-400'
-                    }`}
-                  >
-                    {lang === 'th' ? item.th : item.en}
-                  </span>
-                </button>
-              );
-            })}
+            {RESHAPE_ITEMS.map((item) =>
+              renderLineIconTile(
+                item.key,
+                item.Icon,
+                lang === 'th' ? item.th : item.en,
+                reshapeItem === item.key,
+                Math.abs(state.reshape[item.key]) > 0.5,
+                () => setReshapeItem(item.key)
+              )
+            )}
           </div>
-
           {renderBottomConfirmBar(retouchTabs)}
         </div>
       );
@@ -1426,10 +1391,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             70,
             (v) => setBrushConfig((p) => ({ ...p, eraseRadius: v / 1000 })),
             undefined,
-            <span className="text-[11px] text-zinc-400">{t('brushSize')}</span>
+            <span className="text-[11px] text-[#8E8E93]">{t('brushSize')}</span>
           )}
           <div className="px-4 py-2.5 flex items-center justify-between gap-2">
-            <span className="text-[11px] text-zinc-400 truncate">{t('eraseHint')}</span>
+            <span className="text-[11px] text-[#8E8E93] truncate">{t('eraseHint')}</span>
             <div className="flex gap-2 shrink-0">
               <button
                 type="button"
@@ -1437,7 +1402,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 onClick={() =>
                   updateState((prev) => ({ ...prev, heals: prev.heals.slice(0, -1) }), true)
                 }
-                className="px-3 py-1.5 rounded-full bg-zinc-900 text-xs flex items-center gap-1 disabled:opacity-40"
+                className="px-3 py-1.5 rounded-full bg-[#1C1C1E] text-xs flex items-center gap-1 disabled:opacity-40"
               >
                 <Undo2 className="w-3.5 h-3.5" /> ({state.heals.length})
               </button>
@@ -1445,7 +1410,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 type="button"
                 disabled={state.heals.length === 0}
                 onClick={() => updateState((prev) => ({ ...prev, heals: [] }), true)}
-                className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 text-xs disabled:opacity-40"
+                className="px-3 py-1.5 rounded-full bg-[#1C1C1E] text-[#FF4F7B] text-xs disabled:opacity-40"
               >
                 {t('clear')}
               </button>
@@ -1475,8 +1440,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   (prev) => ({ ...prev, bodyStretch: { ...prev.bodyStretch, amount: 0 } }),
                   true
                 ),
-              <span className="text-[11px] text-[#FF4F7B] font-semibold">
-                {lang === 'th' ? 'ความสูงเพรียว' : 'Tall'}
+              <span className="text-[11px] text-[#FF4F7B] font-medium">
+                {lang === 'th' ? 'สูงเพรียว' : 'Tall'}
               </span>
             )
           : renderWhiteSlider(
@@ -1485,10 +1450,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               22,
               (v) => setBrushConfig((p) => ({ ...p, liquifyRadius: v / 100 })),
               undefined,
-              <span className="text-[11px] text-zinc-400">{t('brushSize')}</span>
+              <span className="text-[11px] text-[#8E8E93]">{t('brushSize')}</span>
             )}
 
-        <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <div className="px-4 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
           {(
             [
               ['push', t('liquifyPush')],
@@ -1503,10 +1468,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 updateState((p) => ({ ...p, bodyStretch: { ...p.bodyStretch, enabled: false } }));
                 setBrushConfig((p) => ({ ...p, liquifyMode: mode }));
               }}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold shrink-0 ${
+              className={`px-3.5 py-2 rounded-full text-xs font-medium shrink-0 ${
                 !bs.enabled && brushConfig.liquifyMode === mode
                   ? 'bg-white text-black'
-                  : 'bg-zinc-900 text-zinc-300'
+                  : 'bg-[#1C1C1E] text-zinc-300'
               }`}
             >
               {lbl}
@@ -1523,11 +1488,11 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 true
               )
             }
-            className={`px-3.5 py-2 rounded-full text-xs font-semibold shrink-0 ${
-              bs.enabled ? 'meitu-gradient text-white' : 'bg-zinc-900 text-zinc-300'
+            className={`px-3.5 py-2 rounded-full text-xs font-medium shrink-0 ${
+              bs.enabled ? 'meitu-gradient text-white' : 'bg-[#1C1C1E] text-zinc-300'
             }`}
           >
-            {lang === 'th' ? '✨ ยืดขาสูงเพรียว' : '✨ Tall Mode'}
+            {lang === 'th' ? 'เพิ่มความสูง' : 'Tall Mode'}
           </button>
           {state.liquify.length > 0 && (
             <button
@@ -1535,20 +1500,19 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               onClick={() =>
                 updateState((prev) => ({ ...prev, liquify: prev.liquify.slice(0, -1) }), true)
               }
-              className="px-3 py-2 rounded-full bg-zinc-900 text-xs shrink-0"
+              className="px-3 py-2 rounded-full bg-[#1C1C1E] text-xs shrink-0"
             >
               <Undo2 className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
-
         {renderBottomConfirmBar(retouchTabs)}
       </div>
     );
   }
 
   // =========================================================================
-  // 4. CREATIVE & PRO TOOLS (Cutout, Bokeh, AI Style, Mosaic, Stickers, Text, Doodle, Frame, Crop)
+  // 4. CREATIVE TOOLS (Cutout, Bokeh, AI Style, Crop, Mosaic, Stickers, Text, Doodle, Frame)
   // =========================================================================
   const creativeTabs = [
     { id: 'cutout', label: lang === 'th' ? 'ไดคัท' : 'Cutout', active: activeTab === 'cutout', onClick: () => { setActiveTab('cutout'); onTriggerCutout(); } },
@@ -1558,11 +1522,10 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     { id: 'mosaic', label: lang === 'th' ? 'โมเสก' : 'Mosaic', active: activeTab === 'mosaic', onClick: () => setActiveTab('mosaic') },
     { id: 'stickers', label: lang === 'th' ? 'สติกเกอร์' : 'Stickers', active: activeTab === 'stickers', onClick: () => setActiveTab('stickers') },
     { id: 'text', label: lang === 'th' ? 'ข้อความ' : 'Text', active: activeTab === 'text', onClick: () => setActiveTab('text') },
-    { id: 'doodle', label: lang === 'th' ? 'ปากกา' : 'Magic Pen', active: activeTab === 'doodle', onClick: () => setActiveTab('doodle') },
+    { id: 'doodle', label: lang === 'th' ? 'ปากกา' : 'Brush', active: activeTab === 'doodle', onClick: () => setActiveTab('doodle') },
     { id: 'frame', label: lang === 'th' ? 'กรอบรูป' : 'Frames', active: activeTab === 'frame', onClick: () => setActiveTab('frame') },
   ];
 
-  // 4A. CUTOUT
   if (activeTab === 'cutout') {
     const co = state.cutout;
     return (
@@ -1581,27 +1544,23 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                     : { ...prev.cutout, feather: v },
               })),
             undefined,
-            <span className="text-[11px] text-zinc-400">
+            <span className="text-[11px] text-[#8E8E93]">
               {co.bgType === 'blur' ? t('blurStrength') : t('edgeFeather')}
             </span>
           )}
-
         <div className="px-4 py-2 space-y-2">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <button
               type="button"
               onClick={() => {
                 if (!co.enabled) onTriggerCutout();
-                updateState(
-                  (p) => ({ ...p, cutout: { ...p.cutout, enabled: !p.cutout.enabled } }),
-                  true
-                );
+                updateState((p) => ({ ...p, cutout: { ...p.cutout, enabled: !p.cutout.enabled } }), true);
               }}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 ${
-                co.enabled ? 'meitu-gradient text-white' : 'bg-zinc-900 text-zinc-300'
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 ${
+                co.enabled ? 'meitu-gradient text-white' : 'bg-[#1C1C1E] text-zinc-300'
               }`}
             >
-              {isSegmenting ? t('segmenting') : co.enabled ? 'AI Cutout ✓' : t('enableCutout')}
+              {isSegmenting ? t('segmenting') : co.enabled ? 'AI ไดคัท ✓' : t('enableCutout')}
             </button>
             {co.enabled &&
               (
@@ -1620,7 +1579,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                     updateState((p) => ({ ...p, cutout: { ...p.cutout, bgType: bt } }), true)
                   }
                   className={`px-3 py-1.5 rounded-full text-xs shrink-0 ${
-                    co.bgType === bt ? 'bg-white text-black font-semibold' : 'bg-zinc-900 text-zinc-400'
+                    co.bgType === bt ? 'bg-white text-black font-medium' : 'bg-[#1C1C1E] text-[#8E8E93]'
                   }`}
                 >
                   {lbl}
@@ -1638,7 +1597,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                     updateState((p) => ({ ...p, cutout: { ...p.cutout, bgColor: c.color } }), true)
                   }
                   className={`w-8 h-8 rounded-full shrink-0 border-2 ${
-                    co.bgColor === c.color ? 'border-white scale-110' : 'border-white/25'
+                    co.bgColor === c.color ? 'border-white scale-110' : 'border-white/20'
                   }`}
                   style={{ background: c.color }}
                 />
@@ -1658,7 +1617,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                       true
                     )
                   }
-                  className="w-10 h-8 rounded-xl shrink-0 border border-white/30"
+                  className="w-10 h-8 rounded-xl shrink-0 border border-white/25"
                   style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}
                 />
               ))}
@@ -1674,8 +1633,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   onClick={() =>
                     updateState((p) => ({ ...p, cutout: { ...p.cutout, bgStudio: sc.id } }), true)
                   }
-                  className={`px-3 py-1.5 rounded-xl text-xs shrink-0 ${
-                    co.bgStudio === sc.id ? 'bg-white text-black font-semibold' : 'bg-zinc-900 text-zinc-300'
+                  className={`px-3 py-1.5 rounded-full text-xs shrink-0 ${
+                    co.bgStudio === sc.id ? 'bg-white text-black font-medium' : 'bg-[#1C1C1E] text-zinc-300'
                   }`}
                 >
                   {lang === 'th' ? sc.nameTh : sc.nameEn}
@@ -1689,7 +1648,6 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4B. BOKEH / DEPTH BLUR
   if (activeTab === 'blur') {
     return (
       <div className="bg-black text-white select-none">
@@ -1717,8 +1675,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 if (mode === 'portrait') onTriggerCutout();
                 updateState((p) => ({ ...p, blur: { ...p.blur, mode } }), true);
               }}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold shrink-0 ${
-                state.blur.mode === mode ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-300'
+              className={`px-3.5 py-2 rounded-full text-xs font-medium shrink-0 ${
+                state.blur.mode === mode ? 'bg-white text-black' : 'bg-[#1C1C1E] text-zinc-300'
               }`}
             >
               {lbl}
@@ -1730,10 +1688,9 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4C. AI STYLE
   if (activeTab === 'ai') {
     const styles: Array<{ id: AIStyleId; th: string; en: string; grad: string }> = [
-      { id: 'none', th: 'ปกติ', en: 'Normal', grad: 'linear-gradient(135deg,#3f3f46,#27272a)' },
+      { id: 'none', th: 'ต้นฉบับ', en: 'Original', grad: 'linear-gradient(135deg,#2c2c2e,#18181a)' },
       { id: 'hdEnhance', th: 'คมชัด HD', en: 'HD Auto', grad: 'linear-gradient(135deg,#38bdf8,#818cf8)' },
       { id: 'anime', th: 'อนิเมะ 2D', en: 'Anime', grad: 'linear-gradient(135deg,#ff7eb3,#ffd1dc)' },
       { id: 'sketch', th: 'ดินสอสเก็ตช์', en: 'Sketch', grad: 'linear-gradient(135deg,#d6d3d1,#78716c)' },
@@ -1753,7 +1710,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             (v) => updateState((p) => ({ ...p, aiStyle: { ...p.aiStyle, intensity: v } })),
             () => updateState((p) => ({ ...p, aiStyle: { ...p.aiStyle, style: 'none' } }), true)
           )}
-        <div className="flex gap-2.5 px-4 py-2.5 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
           {styles.map((s) => {
             const active = state.aiStyle.style === s.id;
             return (
@@ -1763,17 +1720,17 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 onClick={() =>
                   updateState((p) => ({ ...p, aiStyle: { ...p.aiStyle, style: s.id } }), true)
                 }
-                className="shrink-0 w-16 flex flex-col items-center gap-1.5"
+                className="shrink-0 w-[62px] flex flex-col items-center gap-1.5"
               >
                 <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                    active ? 'ring-2 ring-white' : 'ring-1 ring-white/10'
+                  className={`w-[60px] h-[60px] rounded-[12px] flex items-center justify-center ${
+                    active ? 'ring-[1.8px] ring-white' : ''
                   }`}
                   style={{ background: s.grad }}
                 >
-                  {active && <Check className="w-5 h-5 text-white drop-shadow" />}
+                  {active && <Check className="w-6 h-6 text-white drop-shadow" />}
                 </div>
-                <span className={`text-[10px] truncate w-full text-center ${active ? 'text-white font-semibold' : 'text-zinc-400'}`}>
+                <span className={`text-[11px] truncate w-full text-center ${active ? 'text-white font-medium' : 'text-[#8E8E93]'}`}>
                   {lang === 'th' ? s.th : s.en}
                 </span>
               </button>
@@ -1785,7 +1742,6 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4D. CROP & ROTATE
   if (activeTab === 'crop') {
     const c = state.crop;
     const setAspect = (aspect: AspectPreset) => {
@@ -1804,7 +1760,6 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
         };
       }, true);
     };
-
     return (
       <div className="bg-black text-white select-none">
         {renderWhiteSlider(
@@ -1813,20 +1768,20 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           45,
           (v) => updateState((p) => ({ ...p, crop: { ...p.crop, straighten: v } })),
           () => updateState((p) => ({ ...p, crop: { ...p.crop, straighten: 0 } }), true),
-          <span className="text-[11px] text-zinc-400">{c.straighten}°</span>
+          <span className="text-[11px] text-[#8E8E93] tabular-nums">{c.straighten}°</span>
         )}
-        <div className="flex items-center gap-2 px-4 py-1.5 overflow-x-auto no-scrollbar">
-          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, rotation: (p.crop.rotation + 270) % 360 } }), true)} className="p-2 rounded-xl bg-zinc-900 shrink-0"><RotateCcw className="w-4 h-4" /></button>
-          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, rotation: (p.crop.rotation + 90) % 360 } }), true)} className="p-2 rounded-xl bg-zinc-900 shrink-0"><RotateCw className="w-4 h-4" /></button>
-          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, flipH: !p.crop.flipH } }), true)} className={`p-2 rounded-xl shrink-0 ${c.flipH ? 'bg-white text-black' : 'bg-zinc-900'}`}><FlipHorizontal className="w-4 h-4" /></button>
-          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, flipV: !p.crop.flipV } }), true)} className={`p-2 rounded-xl shrink-0 ${c.flipV ? 'bg-white text-black' : 'bg-zinc-900'}`}><FlipVertical className="w-4 h-4" /></button>
+        <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
+          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, rotation: (p.crop.rotation + 270) % 360 } }), true)} className="p-2 rounded-full bg-[#1C1C1E] shrink-0"><RotateCcw className="w-4 h-4" /></button>
+          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, rotation: (p.crop.rotation + 90) % 360 } }), true)} className="p-2 rounded-full bg-[#1C1C1E] shrink-0"><RotateCw className="w-4 h-4" /></button>
+          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, flipH: !p.crop.flipH } }), true)} className={`p-2 rounded-full shrink-0 ${c.flipH ? 'bg-white text-black' : 'bg-[#1C1C1E]'}`}><FlipHorizontal className="w-4 h-4" /></button>
+          <button type="button" onClick={() => updateState((p) => ({ ...p, crop: { ...p.crop, flipV: !p.crop.flipV } }), true)} className={`p-2 rounded-full shrink-0 ${c.flipV ? 'bg-white text-black' : 'bg-[#1C1C1E]'}`}><FlipVertical className="w-4 h-4" /></button>
           {(['free', '1:1', '3:4', '4:3', '4:5', '9:16', '16:9'] as AspectPreset[]).map((asp) => (
             <button
               key={asp}
               type="button"
               onClick={() => setAspect(asp)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 ${
-                c.aspect === asp ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-300'
+              className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 ${
+                c.aspect === asp ? 'bg-white text-black' : 'bg-[#1C1C1E] text-zinc-300'
               }`}
             >
               {asp === 'free' ? (lang === 'th' ? 'อิสระ' : 'Free') : asp}
@@ -1838,14 +1793,13 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4E. MOSAIC
   if (activeTab === 'mosaic') {
     const modes: Array<{ id: MosaicMode; th: string; en: string }> = [
       { id: 'pixel', th: 'พิกเซล', en: 'Pixel' },
       { id: 'blur', th: 'เบลอ', en: 'Blur' },
       { id: 'glass', th: 'กระจกฝ้า', en: 'Glass' },
       { id: 'oil', th: 'สีน้ำมัน', en: 'Oil' },
-      { id: 'heart', th: 'หัวใจ ♥', en: 'Heart' },
+      { id: 'heart', th: 'หัวใจ', en: 'Heart' },
       { id: 'triangle', th: 'สามเหลี่ยม', en: 'Poly' },
     ];
     return (
@@ -1856,7 +1810,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           110,
           (v) => setBrushConfig((p) => ({ ...p, mosaicSize: v / 1000 })),
           undefined,
-          <span className="text-[11px] text-zinc-400">{t('brushSize')}</span>
+          <span className="text-[11px] text-[#8E8E93]">{t('brushSize')}</span>
         )}
         <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
           {modes.map((m) => (
@@ -1864,8 +1818,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               key={m.id}
               type="button"
               onClick={() => setBrushConfig((p) => ({ ...p, mosaicMode: m.id }))}
-              className={`px-3.5 py-2 rounded-full text-xs font-semibold shrink-0 ${
-                brushConfig.mosaicMode === m.id ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-300'
+              className={`px-3.5 py-2 rounded-full text-xs font-medium shrink-0 ${
+                brushConfig.mosaicMode === m.id ? 'bg-white text-black' : 'bg-[#1C1C1E] text-zinc-300'
               }`}
             >
               {lang === 'th' ? m.th : m.en}
@@ -1877,7 +1831,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
               onClick={() =>
                 updateState((p) => ({ ...p, mosaics: p.mosaics.slice(0, -1) }), true)
               }
-              className="px-3 py-2 rounded-full bg-zinc-900 text-xs shrink-0"
+              className="px-3 py-2 rounded-full bg-[#1C1C1E] text-xs shrink-0"
             >
               <Undo2 className="w-3.5 h-3.5" />
             </button>
@@ -1888,11 +1842,9 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4F. STICKERS
   if (activeTab === 'stickers') {
     const pack = STICKER_PACKS.find((p) => p.id === stickerPackId) ?? STICKER_PACKS[0];
     const sel = state.stickers.find((s) => s.id === selectedStickerId);
-
     return (
       <div className="bg-black text-white select-none">
         {sel &&
@@ -1903,55 +1855,46 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             (v) =>
               updateState((prev) => ({
                 ...prev,
-                stickers: prev.stickers.map((s) =>
-                  s.id === sel.id ? { ...s, scale: v / 100 } : s
-                ),
+                stickers: prev.stickers.map((s) => (s.id === sel.id ? { ...s, scale: v / 100 } : s)),
               })),
             () => {
               updateState(
-                (prev) => ({
-                  ...prev,
-                  stickers: prev.stickers.filter((s) => s.id !== sel.id),
-                }),
+                (prev) => ({ ...prev, stickers: prev.stickers.filter((s) => s.id !== sel.id) }),
                 true
               );
               setSelectedStickerId(null);
             },
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  const copy: StickerLayer = {
-                    ...sel,
-                    id: `stk_${Date.now()}`,
-                    x: Math.min(0.9, sel.x + 0.06),
-                    y: Math.min(0.9, sel.y + 0.06),
-                  };
-                  updateState((prev) => ({ ...prev, stickers: [...prev.stickers, copy] }), true);
-                  setSelectedStickerId(copy.id);
-                }}
-                className="p-1.5 rounded-full bg-zinc-900"
-              >
-                <Copy className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const copy: StickerLayer = {
+                  ...sel,
+                  id: `stk_${Date.now()}`,
+                  x: Math.min(0.9, sel.x + 0.06),
+                  y: Math.min(0.9, sel.y + 0.06),
+                };
+                updateState((prev) => ({ ...prev, stickers: [...prev.stickers, copy] }), true);
+                setSelectedStickerId(copy.id);
+              }}
+              className="p-1.5 rounded-full bg-[#1C1C1E]"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
           )}
-
         <div className="flex items-center gap-4 px-4 py-1 overflow-x-auto no-scrollbar">
           {STICKER_PACKS.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => setStickerPackId(p.id)}
-              className={`text-xs whitespace-nowrap ${
-                stickerPackId === p.id ? 'text-white font-semibold' : 'text-zinc-500'
+              className={`text-[12.5px] whitespace-nowrap ${
+                stickerPackId === p.id ? 'text-white font-semibold' : 'text-[#8E8E93]'
               }`}
             >
               {lang === 'th' ? p.nameTh : p.nameEn}
             </button>
           ))}
         </div>
-
         <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
           {pack.items.map((item, idx) => (
             <button
@@ -1974,7 +1917,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                 updateState((prev) => ({ ...prev, stickers: [...prev.stickers, layer] }), true);
                 setSelectedStickerId(id);
               }}
-              className="shrink-0 h-12 px-3 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center active:scale-95"
+              className="shrink-0 h-12 px-3 rounded-[12px] bg-[#18181A] flex items-center justify-center active:scale-95"
             >
               {item.kind === 'emoji' ? (
                 <span className="text-2xl">{item.content}</span>
@@ -1994,14 +1937,13 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4G. TEXT
   if (activeTab === 'text') {
     const sel = state.texts.find((tx) => tx.id === selectedTextId);
     const addText = () => {
       const id = `txt_${Date.now()}`;
       const newLayer: TextLayer = {
         id,
-        text: lang === 'th' ? 'Meitu สวยละมุน ✨' : 'Meitu Studio ✨',
+        text: lang === 'th' ? 'Meitu สวยละมุน' : 'Meitu Studio',
         fontFamily: "'Prompt', sans-serif",
         fontSize: 7,
         color: '#FFFFFF',
@@ -2046,7 +1988,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             <button
               type="button"
               onClick={addText}
-              className="px-3 py-1.5 rounded-full meitu-gradient text-xs font-bold flex items-center gap-1 shrink-0"
+              className="px-3 py-1.5 rounded-full meitu-gradient text-xs font-semibold flex items-center gap-1 shrink-0"
             >
               <Plus className="w-3.5 h-3.5" /> {lang === 'th' ? 'เพิ่มข้อความ' : 'Add'}
             </button>
@@ -2063,7 +2005,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                   }))
                 }
                 onBlur={commitHistory}
-                className="flex-1 px-3 py-1 rounded-full bg-zinc-900 border border-white/15 text-xs text-white outline-none focus:border-[#FF4F7B]"
+                className="flex-1 px-3 py-1 rounded-full bg-[#1C1C1E] text-xs text-white outline-none"
               />
             )}
           </div>
@@ -2096,7 +2038,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                     )
                   }
                   className={`px-2.5 py-1 rounded-full text-[11px] shrink-0 ${
-                    sel.preset === pr.id ? 'bg-white text-black font-semibold' : 'bg-zinc-900 text-zinc-300'
+                    sel.preset === pr.id ? 'bg-white text-black font-medium' : 'bg-[#1C1C1E] text-zinc-300'
                   }`}
                 >
                   {lang === 'th' ? pr.nameTh : pr.nameEn}
@@ -2115,7 +2057,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
                     true
                   )
                 }
-                className="px-2 py-1 rounded-full bg-zinc-900 text-[11px] text-white border border-white/15"
+                className="px-2 py-1 rounded-full bg-[#1C1C1E] text-[11px] text-white"
               >
                 {FONT_OPTIONS.map((f) => (
                   <option key={f.value} value={f.value}>
@@ -2131,18 +2073,18 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4H. MAGIC BRUSH / DOODLE
   if (activeTab === 'doodle') {
-    const brushes: Array<{ id: DoodleBrushType; label: string }> = [
-      { id: 'sparkle', label: '✨ วิ้ง' },
-      { id: 'heart', label: '💕 หัวใจ' },
-      { id: 'sakura', label: '🌸 ซากุระ' },
-      { id: 'star', label: '⭐ ดาว' },
-      { id: 'bubble', label: '🫧 ฟองสบู่' },
-      { id: 'pearl', label: '🤍 ไข่มุก' },
-      { id: 'neon', label: '⚡ นีออน' },
-      { id: 'rainbow', label: '🌈 สายรุ้ง' },
-      { id: 'pen', label: '🖊️ ปากกา' },
+    const brushes: Array<{ id: DoodleBrushType; Icon: IconComp; th: string; en: string }> = [
+      { id: 'sparkle', Icon: Sparkles, th: 'ประกายวิ้ง', en: 'Sparkle' },
+      { id: 'heart', Icon: Heart, th: 'หัวใจ', en: 'Heart' },
+      { id: 'sakura', Icon: Wand2, th: 'ซากุระ', en: 'Sakura' },
+      { id: 'star', Icon: Star, th: 'ดาว', en: 'Star' },
+      { id: 'bubble', Icon: Circle, th: 'ฟองสบู่', en: 'Bubble' },
+      { id: 'pearl', Icon: Circle, th: 'ไข่มุก', en: 'Pearl' },
+      { id: 'neon', Icon: Zap, th: 'นีออน', en: 'Neon' },
+      { id: 'rainbow', Icon: Rainbow, th: 'สายรุ้ง', en: 'Rainbow' },
+      { id: 'pen', Icon: Pen, th: 'ปากกา', en: 'Pen' },
+      { id: 'highlighter', Icon: Highlighter, th: 'ไฮไลท์', en: 'Marker' },
     ];
     return (
       <div className="bg-black text-white select-none">
@@ -2151,36 +2093,37 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           5,
           55,
           (v) => setBrushConfig((p) => ({ ...p, doodleSize: v / 1000 })),
-          undefined,
+          state.doodles.length > 0
+            ? () => updateState((p) => ({ ...p, doodles: p.doodles.slice(0, -1) }), true)
+            : undefined,
           <input
             type="color"
             value={brushConfig.doodleColor}
             onChange={(e) => setBrushConfig((p) => ({ ...p, doodleColor: e.target.value }))}
-            className="w-6 h-6 rounded-full cursor-pointer border-0 bg-transparent"
+            className="w-6 h-6 rounded-full cursor-pointer border border-white/30 bg-transparent"
           />
         )}
         <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
-          {brushes.map((b) => (
-            <button
-              key={b.id}
-              type="button"
-              onClick={() => setBrushConfig((p) => ({ ...p, doodleType: b.id }))}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 ${
-                brushConfig.doodleType === b.id ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-300'
-              }`}
-            >
-              {b.label}
-            </button>
-          ))}
+          {brushes.map((b) =>
+            renderLineIconTile(
+              b.id,
+              b.Icon,
+              lang === 'th' ? b.th : b.en,
+              brushConfig.doodleType === b.id,
+              false,
+              () => setBrushConfig((p) => ({ ...p, doodleType: b.id }))
+            )
+          )}
           {state.doodles.length > 0 && (
             <button
               type="button"
-              onClick={() =>
-                updateState((p) => ({ ...p, doodles: p.doodles.slice(0, -1) }), true)
-              }
-              className="px-3 py-1.5 rounded-full bg-zinc-900 text-xs shrink-0"
+              onClick={() => updateState((p) => ({ ...p, doodles: [] }), true)}
+              className="shrink-0 w-[60px] flex flex-col items-center gap-1.5 text-[#FF4F7B]"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <div className="w-11 h-11 rounded-full bg-[#18181A] flex items-center justify-center">
+                <Trash2 className="w-4.5 h-4.5" />
+              </div>
+              <span className="text-[11px]">{t('clear')}</span>
             </button>
           )}
         </div>
@@ -2189,7 +2132,6 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
     );
   }
 
-  // 4I. FRAMES
   const frames: Array<{ id: FrameStyleId; th: string; en: string }> = [
     { id: 'none', th: 'ไม่มีกรอบ', en: 'None' },
     { id: 'white', th: 'ขาวคลีน', en: 'White' },
@@ -2211,7 +2153,7 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
           (v) => updateState((p) => ({ ...p, frame: { ...p.frame, thickness: v } })),
           () => updateState((p) => ({ ...p, frame: { ...p.frame, style: 'none' } }), true)
         )}
-      <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
         {frames.map((fr) => (
           <button
             key={fr.id}
@@ -2219,8 +2161,8 @@ export const MeituMobileSheet: React.FC<MeituMobileSheetProps> = ({
             onClick={() =>
               updateState((p) => ({ ...p, frame: { ...p.frame, style: fr.id } }), true)
             }
-            className={`px-3.5 py-2 rounded-full text-xs font-semibold shrink-0 ${
-              state.frame.style === fr.id ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-300'
+            className={`px-3.5 py-2 rounded-full text-xs font-medium shrink-0 ${
+              state.frame.style === fr.id ? 'bg-white text-black' : 'bg-[#1C1C1E] text-zinc-300'
             }`}
           >
             {lang === 'th' ? fr.th : fr.en}

@@ -1,16 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArrowLeft,
-  Download,
+  ChevronLeft,
   ImagePlus,
-  Sparkles,
   Trash2,
   Wand2,
 } from 'lucide-react';
 import { SAMPLE_PHOTOS } from '../data/presets';
 import { useT } from '../i18n/translations';
 import { Language, ThemeMode } from '../types/editor';
-import { SliderControl } from './SliderControl';
 
 interface CollageStudioProps {
   lang: Language;
@@ -28,100 +25,20 @@ interface CollageCellRect {
 
 interface CollageLayout {
   id: string;
-  name: string;
-  minPhotos: number;
   cells: CollageCellRect[];
 }
 
 const COLLAGE_LAYOUTS: CollageLayout[] = [
-  {
-    id: '2_v',
-    name: '2 Vertical',
-    minPhotos: 2,
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 1 },
-      { x: 0.5, y: 0, w: 0.5, h: 1 },
-    ],
-  },
-  {
-    id: '2_h',
-    name: '2 Horizontal',
-    minPhotos: 2,
-    cells: [
-      { x: 0, y: 0, w: 1, h: 0.5 },
-      { x: 0, y: 0.5, w: 1, h: 0.5 },
-    ],
-  },
-  {
-    id: '3_hero',
-    name: '3 Magazine',
-    minPhotos: 3,
-    cells: [
-      { x: 0, y: 0, w: 0.58, h: 1 },
-      { x: 0.58, y: 0, w: 0.42, h: 0.5 },
-      { x: 0.58, y: 0.5, w: 0.42, h: 0.5 },
-    ],
-  },
-  {
-    id: '3_strip',
-    name: '3 Film Strip',
-    minPhotos: 3,
-    cells: [
-      { x: 0, y: 0, w: 1, h: 1 / 3 },
-      { x: 0, y: 1 / 3, w: 1, h: 1 / 3 },
-      { x: 0, y: 2 / 3, w: 1, h: 1 / 3 },
-    ],
-  },
-  {
-    id: '4_grid',
-    name: '4 Classic Grid',
-    minPhotos: 4,
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0, w: 0.5, h: 0.5 },
-      { x: 0, y: 0.5, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
-    ],
-  },
-  {
-    id: '4_featured',
-    name: '4 Hero Top',
-    minPhotos: 4,
-    cells: [
-      { x: 0, y: 0, w: 1, h: 0.58 },
-      { x: 0, y: 0.58, w: 1 / 3, h: 0.42 },
-      { x: 1 / 3, y: 0.58, w: 1 / 3, h: 0.42 },
-      { x: 2 / 3, y: 0.58, w: 1 / 3, h: 0.42 },
-    ],
-  },
-  {
-    id: '4_bento',
-    name: '4 Meitu Bento',
-    minPhotos: 4,
-    cells: [
-      { x: 0, y: 0, w: 0.6, h: 0.55 },
-      { x: 0.6, y: 0, w: 0.4, h: 0.35 },
-      { x: 0.6, y: 0.35, w: 0.4, h: 0.65 },
-      { x: 0, y: 0.55, w: 0.6, h: 0.45 },
-    ],
-  },
-  {
-    id: '6_grid',
-    name: '6 Grid',
-    minPhotos: 6,
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 1 / 3 },
-      { x: 0.5, y: 0, w: 0.5, h: 1 / 3 },
-      { x: 0, y: 1 / 3, w: 0.5, h: 1 / 3 },
-      { x: 0.5, y: 1 / 3, w: 0.5, h: 1 / 3 },
-      { x: 0, y: 2 / 3, w: 0.5, h: 1 / 3 },
-      { x: 0.5, y: 2 / 3, w: 0.5, h: 1 / 3 },
-    ],
-  },
+  { id: '2_v', cells: [{ x: 0, y: 0, w: 0.5, h: 1 }, { x: 0.5, y: 0, w: 0.5, h: 1 }] },
+  { id: '2_h', cells: [{ x: 0, y: 0, w: 1, h: 0.5 }, { x: 0, y: 0.5, w: 1, h: 0.5 }] },
+  { id: '3_hero', cells: [{ x: 0, y: 0, w: 0.58, h: 1 }, { x: 0.58, y: 0, w: 0.42, h: 0.5 }, { x: 0.58, y: 0.5, w: 0.42, h: 0.5 }] },
+  { id: '3_strip', cells: [{ x: 0, y: 0, w: 1, h: 1 / 3 }, { x: 0, y: 1 / 3, w: 1, h: 1 / 3 }, { x: 0, y: 2 / 3, w: 1, h: 1 / 3 }] },
+  { id: '4_grid', cells: [{ x: 0, y: 0, w: 0.5, h: 0.5 }, { x: 0.5, y: 0, w: 0.5, h: 0.5 }, { x: 0, y: 0.5, w: 0.5, h: 0.5 }, { x: 0.5, y: 0.5, w: 0.5, h: 0.5 }] },
+  { id: '4_bento', cells: [{ x: 0, y: 0, w: 0.6, h: 0.55 }, { x: 0.6, y: 0, w: 0.4, h: 0.35 }, { x: 0.6, y: 0.35, w: 0.4, h: 0.65 }, { x: 0, y: 0.55, w: 0.6, h: 0.45 }] },
+  { id: '4_featured', cells: [{ x: 0, y: 0, w: 1, h: 0.58 }, { x: 0, y: 0.58, w: 1 / 3, h: 0.42 }, { x: 1 / 3, y: 0.58, w: 1 / 3, h: 0.42 }, { x: 2 / 3, y: 0.58, w: 1 / 3, h: 0.42 }] },
+  { id: '6_grid', cells: [{ x: 0, y: 0, w: 0.5, h: 1 / 3 }, { x: 0.5, y: 0, w: 0.5, h: 1 / 3 }, { x: 0, y: 1 / 3, w: 0.5, h: 1 / 3 }, { x: 0.5, y: 1 / 3, w: 0.5, h: 1 / 3 }, { x: 0, y: 2 / 3, w: 0.5, h: 1 / 3 }, { x: 0.5, y: 2 / 3, w: 0.5, h: 1 / 3 }] },
   {
     id: '9_grid',
-    name: '9 Square Grid',
-    minPhotos: 9,
     cells: Array.from({ length: 9 }, (_, i) => ({
       x: (i % 3) / 3,
       y: Math.floor(i / 3) / 3,
@@ -132,13 +49,13 @@ const COLLAGE_LAYOUTS: CollageLayout[] = [
 ];
 
 const BG_PRESETS = [
-  { id: 'white', label: 'White', value: '#FFFFFF' },
-  { id: 'pink', label: 'Meitu Pink', value: '#FFE3EC' },
-  { id: 'cream', label: 'Cream', value: '#FFF6EB' },
-  { id: 'lavender', label: 'Lavender', value: '#F0E6FF' },
-  { id: 'dark', label: 'Studio Black', value: '#18181B' },
-  { id: 'grad_sakura', label: 'Sakura Grad', value: 'linear-gradient(135deg,#FF9A9E,#FAD0C4)' },
-  { id: 'grad_cotton', label: 'Cotton Grad', value: 'linear-gradient(135deg,#FBC2EB,#A6C1EE)' },
+  { id: 'white', value: '#FFFFFF' },
+  { id: 'pink', value: '#FFE3EC' },
+  { id: 'cream', value: '#FFF6EB' },
+  { id: 'lavender', value: '#F0E6FF' },
+  { id: 'dark', value: '#18181B' },
+  { id: 'grad_sakura', value: 'linear-gradient(135deg,#FF9A9E,#FAD0C4)' },
+  { id: 'grad_cotton', value: 'linear-gradient(135deg,#FBC2EB,#A6C1EE)' },
 ];
 
 const ASPECTS: Array<{ id: string; w: number; h: number }> = [
@@ -150,15 +67,15 @@ const ASPECTS: Array<{ id: string; w: number; h: number }> = [
   { id: '16:9', w: 1600, h: 900 },
 ];
 
+type CollageTab = 'layout' | 'ratio' | 'border' | 'bg' | 'photos';
+
 export const CollageStudio: React.FC<CollageStudioProps> = ({
   lang,
-  theme,
   onBackHome,
   onSendToEditor,
 }) => {
   const t = useT(lang);
-  const dark = theme === 'dark';
-
+  const [tab, setTab] = useState<CollageTab>('layout');
   const [photoSrcs, setPhotoSrcs] = useState<string[]>(() => SAMPLE_PHOTOS.map((s) => s.src));
   const [loadedImgs, setLoadedImgs] = useState<HTMLImageElement[]>([]);
   const [layoutId, setLayoutId] = useState('4_bento');
@@ -166,7 +83,7 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
   const [spacing, setSpacing] = useState(14);
   const [margin, setMargin] = useState(20);
   const [radius, setRadius] = useState(20);
-  const [bgId, setBgId] = useState('pink');
+  const [bgId, setBgId] = useState('white');
   const [swapFrom, setSwapFrom] = useState<number | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -175,7 +92,6 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
   const activeLayout = COLLAGE_LAYOUTS.find((l) => l.id === layoutId) ?? COLLAGE_LAYOUTS[4];
   const activeAspect = ASPECTS.find((a) => a.id === aspectId) ?? ASPECTS[1];
 
-  // Load images whenever photoSrcs changes
   useEffect(() => {
     let cancelled = false;
     Promise.all(
@@ -197,7 +113,6 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
     };
   }, [photoSrcs]);
 
-  // Render collage canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -207,7 +122,6 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
     canvas.height = H;
     const ctx = canvas.getContext('2d')!;
 
-    // Draw background
     const bg = BG_PRESETS.find((b) => b.id === bgId) ?? BG_PRESETS[0];
     if (bg.value.startsWith('linear-gradient')) {
       const grad = ctx.createLinearGradient(0, 0, W, H);
@@ -253,13 +167,9 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
 
       const img = loadedImgs[idx % Math.max(1, loadedImgs.length)];
       if (img && img.naturalWidth > 0) {
-        // Object-fit: cover
         const imgRatio = img.naturalWidth / img.naturalHeight;
         const cellRatio = cw / ch;
-        let sx = 0,
-          sy = 0,
-          sw = img.naturalWidth,
-          sh = img.naturalHeight;
+        let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
         if (imgRatio > cellRatio) {
           sw = img.naturalHeight * cellRatio;
           sx = (img.naturalWidth - sw) / 2;
@@ -268,26 +178,19 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
           sy = (img.naturalHeight - sh) / 2;
         }
         ctx.drawImage(img, sx, sy, sw, sh, x, y, cw, ch);
-      } else {
-        ctx.fillStyle = 'rgba(255,79,123,0.12)';
-        ctx.fillRect(x, y, cw, ch);
       }
-
       if (swapFrom === idx) {
         ctx.strokeStyle = '#FF4F7B';
         ctx.lineWidth = 10;
         ctx.strokeRect(x + 5, y + 5, cw - 10, ch - 10);
       }
-
       ctx.restore();
     });
   }, [loadedImgs, activeLayout, activeAspect, spacing, margin, radius, bgId, swapFrom]);
 
   const handleAddFiles = (files: FileList | null) => {
     if (!files) return;
-    const urls = Array.from(files)
-      .slice(0, 9)
-      .map((f) => URL.createObjectURL(f));
+    const urls = Array.from(files).slice(0, 9).map((f) => URL.createObjectURL(f));
     setPhotoSrcs((prev) => [...urls, ...prev].slice(0, 9));
   };
 
@@ -299,12 +202,9 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
       (c) => nx >= c.x && nx <= c.x + c.w && ny >= c.y && ny <= c.y + c.h
     );
     if (hitIdx < 0) return;
-
-    if (swapFrom === null) {
-      setSwapFrom(hitIdx);
-    } else if (swapFrom === hitIdx) {
-      setSwapFrom(null);
-    } else {
+    if (swapFrom === null) setSwapFrom(hitIdx);
+    else if (swapFrom === hitIdx) setSwapFrom(null);
+    else {
       setPhotoSrcs((prev) => {
         const next = [...prev];
         const a = swapFrom % next.length;
@@ -318,115 +218,178 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
 
   const handleExport = () => {
     if (!canvasRef.current) return;
-    const url = canvasRef.current.toDataURL('image/jpeg', 0.94);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = canvasRef.current.toDataURL('image/jpeg', 0.94);
     a.download = `meitu-collage-${Date.now()}.jpg`;
     a.click();
   };
 
-  const handleEditInStudio = () => {
-    if (!canvasRef.current) return;
-    const url = canvasRef.current.toDataURL('image/png');
-    onSendToEditor(url);
-  };
+  const bottomTabs: Array<{ id: CollageTab; label: string }> = [
+    { id: 'layout', label: lang === 'th' ? 'เลย์เอาต์' : 'Layout' },
+    { id: 'ratio', label: lang === 'th' ? 'สัดส่วน' : 'Ratio' },
+    { id: 'border', label: lang === 'th' ? 'ขอบ & มุม' : 'Border' },
+    { id: 'bg', label: lang === 'th' ? 'พื้นหลัง' : 'Backdrop' },
+    { id: 'photos', label: lang === 'th' ? 'รูปภาพ' : 'Photos' },
+  ];
 
   return (
-    <div
-      className={`h-screen w-screen flex flex-col overflow-hidden ${
-        dark ? 'bg-zinc-950 text-zinc-100' : 'bg-[#FFF7F9] text-zinc-800'
-      }`}
-    >
-      <header
-        className={`h-14 shrink-0 px-4 border-b flex items-center justify-between ${
-          dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-pink-100'
-        }`}
-      >
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={onBackHome}
-            className="p-2 rounded-xl hover:bg-pink-500/10"
-          >
-            <ArrowLeft className="w-5 h-5 text-pink-500" />
-          </button>
-          <h1 className="font-bold text-sm sm:text-base">{t('collageTitle')}</h1>
-        </div>
+    <div className="h-[100dvh] w-screen bg-black text-white flex flex-col overflow-hidden select-none">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => handleAddFiles(e.target.files)}
+      />
+
+      {/* Sleek Meitu Top Bar */}
+      <header className="shrink-0 px-3 pb-2 safe-top flex items-center justify-between bg-black z-20">
+        <button
+          type="button"
+          onClick={onBackHome}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white active:scale-90"
+        >
+          <ChevronLeft className="w-6 h-6 stroke-[1.8]" />
+        </button>
+
+        <span className="text-[14px] font-semibold">
+          {lang === 'th' ? 'ภาพปะติด' : 'Collage'}
+        </span>
+
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={handleEditInStudio}
-            className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border ${
-              dark ? 'border-zinc-700 bg-zinc-800' : 'border-pink-200 bg-pink-50 text-pink-600'
-            }`}
+            onClick={() => canvasRef.current && onSendToEditor(canvasRef.current.toDataURL('image/png'))}
+            className="p-2 rounded-full bg-[#1C1C1E] text-white/90"
+            title={t('editCaptured')}
           >
             <Wand2 className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('editCaptured')}</span>
           </button>
           <button
             type="button"
             onClick={handleExport}
-            className="px-4 py-2 rounded-xl meitu-gradient text-white text-xs font-bold flex items-center gap-1.5 shadow-md"
+            className="px-4 py-1.5 rounded-full meitu-gradient text-white text-[13px] font-semibold"
           >
-            <Download className="w-4 h-4" /> {t('save')}
+            {lang === 'th' ? 'บันทึก' : 'Save'}
           </button>
         </div>
       </header>
 
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
-        {/* Preview Stage */}
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-4 overflow-auto">
-          <canvas
-            ref={canvasRef}
-            onClick={handleCanvasClick}
-            className="max-h-[54vh] lg:max-h-[78vh] max-w-[92vw] lg:max-w-[60vw] w-auto h-auto rounded-2xl shadow-2xl cursor-pointer"
-          />
-          <p className="mt-2.5 text-[11px] text-zinc-400">{t('swapHint')}</p>
-        </div>
+      {/* Huge Centered Collage Stage */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-3 overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          onClick={handleCanvasClick}
+          className="max-h-[62dvh] max-w-[94vw] w-auto h-auto rounded-xl shadow-2xl cursor-pointer"
+        />
+        <p className="mt-2 text-[10.5px] text-[#8E8E93]">{t('swapHint')}</p>
+      </div>
 
-        {/* Right Controls */}
-        <aside
-          className={`w-full lg:w-84 shrink-0 border-t lg:border-t-0 lg:border-l p-4 overflow-y-auto space-y-5 max-h-[38vh] lg:max-h-none ${
-            dark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-pink-100'
-          }`}
-        >
-          {/* Add Photos */}
-          <div className="space-y-2">
-            <div className="flex gap-2">
+      {/* Authentic Meitu OLED Black Bottom Sheet */}
+      <div className="shrink-0 bg-black border-t border-white/[0.06]">
+        <div className="px-4 py-3 min-h-[96px] flex items-center">
+          {/* WIREFRAME MINI LAYOUT SVGs */}
+          {tab === 'layout' && (
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar w-full">
+              {COLLAGE_LAYOUTS.map((l) => {
+                const active = layoutId === l.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => setLayoutId(l.id)}
+                    className={`shrink-0 w-12 h-14 p-1.5 rounded-[10px] transition-all active:scale-95 ${
+                      active ? 'bg-white' : 'bg-[#18181A]'
+                    }`}
+                  >
+                    <svg viewBox="0 0 100 120" className="w-full h-full">
+                      {l.cells.map((c, idx) => (
+                        <rect
+                          key={idx}
+                          x={c.x * 100 + 3}
+                          y={c.y * 120 + 3}
+                          width={Math.max(4, c.w * 100 - 6)}
+                          height={Math.max(4, c.h * 120 - 6)}
+                          rx="6"
+                          fill={active ? '#FF4F7B' : '#52525B'}
+                        />
+                      ))}
+                    </svg>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {tab === 'ratio' && (
+            <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar w-full">
+              {ASPECTS.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setAspectId(a.id)}
+                  className={`px-4 py-2 rounded-full text-xs font-semibold shrink-0 ${
+                    aspectId === a.id ? 'bg-white text-black' : 'bg-[#1C1C1E] text-[#8E8E93]'
+                  }`}
+                >
+                  {a.id}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {tab === 'border' && (
+            <div className="w-full space-y-2.5">
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-[#8E8E93] w-14">{t('spacing')}</span>
+                <input type="range" min={0} max={50} value={spacing} onChange={(e) => setSpacing(Number(e.target.value))} className="meitu-white-slider" />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-[#8E8E93] w-14">{t('margin')}</span>
+                <input type="range" min={0} max={80} value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="meitu-white-slider" />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-[#8E8E93] w-14">{t('cornerRadius')}</span>
+                <input type="range" min={0} max={80} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="meitu-white-slider" />
+              </div>
+            </div>
+          )}
+
+          {tab === 'bg' && (
+            <div className="flex items-center justify-center gap-3 overflow-x-auto no-scrollbar w-full">
+              {BG_PRESETS.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setBgId(b.id)}
+                  className={`w-9 h-9 rounded-full shrink-0 border-2 ${
+                    bgId === b.id ? 'border-[#FF4F7B] scale-110' : 'border-white/25'
+                  }`}
+                  style={{ background: b.value }}
+                />
+              ))}
+            </div>
+          )}
+
+          {tab === 'photos' && (
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar w-full">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-2.5 rounded-xl meitu-gradient text-white text-xs font-bold flex items-center justify-center gap-1.5"
+                className="w-14 h-14 rounded-xl bg-[#1C1C1E] border border-dashed border-white/25 flex flex-col items-center justify-center gap-1 shrink-0 text-[#FF4F7B]"
               >
-                <ImagePlus className="w-4 h-4" /> {t('addPhotos')}
+                <ImagePlus className="w-5 h-5" />
+                <span className="text-[9px] font-semibold">{lang === 'th' ? 'เพิ่มรูป' : 'Add'}</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setPhotoSrcs(SAMPLE_PHOTOS.map((s) => s.src))}
-                className={`px-3 py-2.5 rounded-xl text-xs font-semibold border flex items-center gap-1 ${
-                  dark ? 'border-zinc-700 bg-zinc-800' : 'border-pink-200 bg-pink-50 text-pink-600'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" /> Demo
-              </button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => handleAddFiles(e.target.files)}
-            />
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
               {photoSrcs.map((src, i) => (
-                <div key={i} className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-pink-200">
+                <div key={i} className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
                   <img src={src} alt="" className="w-full h-full object-cover" />
                   {photoSrcs.length > 2 && (
                     <button
                       type="button"
-                      onClick={() => setPhotoSrcs((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="absolute top-0.5 right-0.5 bg-black/65 text-white rounded-full p-0.5"
+                      onClick={() => setPhotoSrcs((p) => p.filter((_, idx) => idx !== i))}
+                      className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/70 flex items-center justify-center text-white"
                     >
                       <Trash2 className="w-2.5 h-2.5" />
                     </button>
@@ -434,80 +397,27 @@ export const CollageStudio: React.FC<CollageStudioProps> = ({
                 </div>
               ))}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Layouts */}
-          <div>
-            <div className="text-xs font-bold mb-2">{t('layout')}</div>
-            <div className="grid grid-cols-3 gap-1.5">
-              {COLLAGE_LAYOUTS.map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => setLayoutId(l.id)}
-                  className={`py-2 px-1.5 rounded-xl text-[11px] font-semibold transition-all ${
-                    layoutId === l.id
-                      ? 'meitu-gradient text-white shadow-sm'
-                      : dark
-                        ? 'bg-zinc-800 text-zinc-300'
-                        : 'bg-pink-50 text-zinc-700'
-                  }`}
-                >
-                  {l.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Aspect Ratio */}
-          <div>
-            <div className="text-xs font-bold mb-2">{t('aspectRatio')}</div>
-            <div className="grid grid-cols-3 gap-1.5">
-              {ASPECTS.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => setAspectId(a.id)}
-                  className={`py-1.5 rounded-lg text-xs font-semibold ${
-                    aspectId === a.id
-                      ? 'meitu-gradient text-white'
-                      : dark
-                        ? 'bg-zinc-800 text-zinc-300'
-                        : 'bg-pink-50 text-zinc-700'
-                  }`}
-                >
-                  {a.id}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Spacing / Margin / Corners */}
-          <div className="space-y-3">
-            <SliderControl label={t('spacing')} value={spacing} min={0} max={50} defaultValue={14} onChange={setSpacing} dark={dark} />
-            <SliderControl label={t('margin')} value={margin} min={0} max={80} defaultValue={20} onChange={setMargin} dark={dark} />
-            <SliderControl label={t('cornerRadius')} value={radius} min={0} max={80} defaultValue={20} onChange={setRadius} dark={dark} />
-          </div>
-
-          {/* Background */}
-          <div>
-            <div className="text-xs font-bold mb-2">{t('background')}</div>
-            <div className="flex flex-wrap gap-2">
-              {BG_PRESETS.map((b) => (
-                <button
-                  key={b.id}
-                  type="button"
-                  title={b.label}
-                  onClick={() => setBgId(b.id)}
-                  className={`w-8 h-8 rounded-full border-2 ${
-                    bgId === b.id ? 'border-pink-500 scale-110' : 'border-zinc-300'
-                  }`}
-                  style={{ background: b.value }}
-                />
-              ))}
-            </div>
-          </div>
-        </aside>
+        {/* Meitu Bottom Tab Bar with `#FF4F7B` underline */}
+        <div className="h-[50px] px-4 flex items-center justify-around safe-bottom border-t border-white/[0.06]">
+          {bottomTabs.map((bt) => (
+            <button
+              key={bt.id}
+              type="button"
+              onClick={() => setTab(bt.id)}
+              className={`relative py-2 text-[13px] ${
+                tab === bt.id ? 'text-white font-semibold' : 'text-[#8E8E93]'
+              }`}
+            >
+              {bt.label}
+              {tab === bt.id && (
+                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-[2.5px] rounded-full bg-[#FF4F7B]" />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
