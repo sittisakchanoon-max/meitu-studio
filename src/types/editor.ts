@@ -348,6 +348,20 @@ export interface SegmentationMask {
   data: Float32Array; // 0..1 foreground confidence per pixel
 }
 
+export interface ActiveBrushConfig {
+  eraseRadius: number;
+  mosaicMode: MosaicMode;
+  mosaicSize: number;
+  mosaicStrength: number;
+  liquifyMode: LiquifyMode;
+  liquifyRadius: number;
+  liquifyStrength: number;
+  doodleType: DoodleBrushType;
+  doodleColor: string;
+  doodleSize: number;
+  doodleOpacity: number;
+}
+
 export function createDefaultHSL(): HSLSettings {
   return {
     red: { h: 0, s: 0, l: 0 },

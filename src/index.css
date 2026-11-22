@@ -17,6 +17,7 @@
   body,
   #root {
     height: 100%;
+    height: 100dvh;
     margin: 0;
     padding: 0;
     font-family: 'Prompt', 'Inter', system-ui, -apple-system, sans-serif;
@@ -24,25 +25,72 @@
   }
 }
 
+.safe-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
 /* Meitu signature gradient */
 .meitu-gradient {
-  background: linear-gradient(135deg, #ff4f7b 0%, #ff758c 55%, #ff8fa3 100%);
+  background: linear-gradient(135deg, #ff3868 0%, #ff5c8a 55%, #ff85a2 100%);
 }
 
 .meitu-gradient-text {
-  background: linear-gradient(135deg, #ff3366 0%, #ff6b95 60%, #ff9a76 100%);
+  background: linear-gradient(135deg, #ff2e63 0%, #ff6b95 60%, #ff9a76 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Custom sleek sliders */
+/* Authentic Meitu Mobile Editor White Thin Slider (matches real iOS Meitu app!) */
+input[type='range'].meitu-white-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range'].meitu-white-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+input[type='range'].meitu-white-slider::-webkit-slider-thumb:active {
+  transform: scale(1.18);
+}
+
+input[type='range'].meitu-white-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+/* Pink slider for Collage / Export modals */
 input[type='range'].meitu-slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 5px;
+  height: 4px;
   border-radius: 999px;
-  background: rgba(255, 79, 123, 0.2);
+  background: rgba(255, 79, 123, 0.22);
   outline: none;
   cursor: pointer;
 }
@@ -57,11 +105,6 @@ input[type='range'].meitu-slider::-webkit-slider-thumb {
   border: 3px solid #ff4f7b;
   box-shadow: 0 2px 8px rgba(255, 79, 123, 0.4);
   cursor: pointer;
-  transition: transform 0.12s ease;
-}
-
-input[type='range'].meitu-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.16);
 }
 
 input[type='range'].meitu-slider::-moz-range-thumb {
@@ -74,7 +117,6 @@ input[type='range'].meitu-slider::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* Hide scrollbars cleanly while keeping scrollability */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -83,7 +125,6 @@ input[type='range'].meitu-slider::-moz-range-thumb {
   scrollbar-width: none;
 }
 
-/* Checkerboard transparency pattern for cutout */
 .checkerboard-bg {
   background-color: #f3f4f6;
   background-image:
@@ -91,17 +132,17 @@ input[type='range'].meitu-slider::-moz-range-thumb {
     linear-gradient(-45deg, #d1d5db 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #d1d5db 75%),
     linear-gradient(-45deg, transparent 75%, #d1d5db 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  background-size: 14px 14px;
+  background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
 }
 
 .dark-checkerboard-bg {
-  background-color: #18181b;
+  background-color: #141416;
   background-image:
-    linear-gradient(45deg, #27272a 25%, transparent 25%),
-    linear-gradient(-45deg, #27272a 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #27272a 75%),
-    linear-gradient(-45deg, transparent 75%, #27272a 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    linear-gradient(45deg, #232328 25%, transparent 25%),
+    linear-gradient(-45deg, #232328 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #232328 75%),
+    linear-gradient(-45deg, transparent 75%, #232328 75%);
+  background-size: 14px 14px;
+  background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
 }

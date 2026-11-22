@@ -16,10 +16,10 @@ export default defineConfig({
         short_name: 'Meitu Studio',
         description:
           'All-in-one Meitu-inspired AI photo editor, 478-point face reshape, makeup studio, 40+ filters, HSL, curves, cutout, collage & live beauty camera.',
-        theme_color: '#ff4f7b',
-        background_color: '#fff8fa',
+        theme_color: '#000000',
+        background_color: '#000000',
         display: 'standalone',
-        orientation: 'any',
+        orientation: 'portrait',
         icons: [
           {
             src: './icon-512.png',

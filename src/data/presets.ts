@@ -17,9 +17,9 @@ export interface AutoBeautyPreset {
 export const AUTO_BEAUTY_PRESETS: AutoBeautyPreset[] = [
   {
     id: 'none',
-    nameTh: 'ปิด',
-    nameEn: 'Off',
-    badgeColor: '#e4e4e7',
+    nameTh: 'ต้นฉบับ',
+    nameEn: 'Original',
+    badgeColor: '#52525b',
     beauty: {
       smooth: 0,
       whiten: 0,
@@ -52,8 +52,8 @@ export const AUTO_BEAUTY_PRESETS: AutoBeautyPreset[] = [
   },
   {
     id: 'korean',
-    nameTh: 'สาวเกาหลีโกลว์',
-    nameEn: 'K-Glass Skin',
+    nameTh: 'สาวเกาหลี',
+    nameEn: 'K-Glass',
     badgeColor: '#ffc2d4',
     beauty: {
       smooth: 56,
@@ -70,7 +70,7 @@ export const AUTO_BEAUTY_PRESETS: AutoBeautyPreset[] = [
   },
   {
     id: 'sweet',
-    nameTh: 'หวานละมุน Meitu',
+    nameTh: 'สาวหวาน Meitu',
     nameEn: 'Sweet Meitu',
     badgeColor: '#ff9ebb',
     beauty: {
@@ -123,10 +123,28 @@ export const AUTO_BEAUTY_PRESETS: AutoBeautyPreset[] = [
   },
 ];
 
+export type MakeupCategory = 'featured' | 'new' | 'winter' | 'natural' | 'sweet';
+
+export const MAKEUP_CATEGORIES: Array<{
+  id: MakeupCategory;
+  nameTh: string;
+  nameEn: string;
+}> = [
+  { id: 'featured', nameTh: 'คุณสมบัติเด่น', nameEn: 'Featured' },
+  { id: 'new', nameTh: 'ใหม่', nameEn: 'New' },
+  { id: 'winter', nameTh: 'ฤดูหนาว', nameEn: 'Winter' },
+  { id: 'natural', nameTh: 'ธรรมชาติ', nameEn: 'Natural' },
+  { id: 'sweet', nameTh: 'อ่อนหวาน', nameEn: 'Sweet' },
+];
+
 export interface MakeupLookPreset {
   id: string;
   nameTh: string;
   nameEn: string;
+  category: MakeupCategory;
+  featured?: boolean;
+  hotBadge?: boolean;
+  sparkleName?: boolean;
   swatch: [string, string];
   settings: Partial<MakeupSettings>;
 }
@@ -134,9 +152,11 @@ export interface MakeupLookPreset {
 export const MAKEUP_LOOK_PRESETS: MakeupLookPreset[] = [
   {
     id: 'none',
-    nameTh: 'ไม่แต่งหน้า',
-    nameEn: 'Bare',
-    swatch: ['#f4f4f5', '#e4e4e7'],
+    nameTh: 'ต้นฉบับ',
+    nameEn: 'Original',
+    category: 'featured',
+    featured: true,
+    swatch: ['#3f3f46', '#27272a'],
     settings: {
       lipstickIntensity: 0,
       blushIntensity: 0,
@@ -148,58 +168,171 @@ export const MAKEUP_LOOK_PRESETS: MakeupLookPreset[] = [
       contactsIntensity: 0,
     },
   },
+  // EXACT SIGNATURE MEITU LOOKS FROM SCREENSHOT 2!
   {
-    id: 'k_peach',
-    nameTh: 'พีชเกาหลี',
-    nameEn: 'Seoul Peach',
+    id: 'plum_berry',
+    nameTh: 'พลัมเบอร์รี่',
+    nameEn: 'Plum Berry',
+    category: 'featured',
+    featured: true,
+    swatch: ['#d9536f', '#f4a4b8'],
+    settings: {
+      lipstickColor: '#D64C64',
+      lipstickIntensity: 68,
+      lipstickFinish: 'velvet',
+      blushStyle: 'undereye',
+      blushColor: '#F27C98',
+      blushIntensity: 56,
+      eyeshadowColor: '#B87678',
+      eyeshadowIntensity: 48,
+      eyelinerStyle: 'natural',
+      eyelinerIntensity: 52,
+      eyebrowColor: '#4E3930',
+      eyebrowIntensity: 42,
+      contourIntensity: 32,
+      highlightIntensity: 46,
+      contactsColor: '#86694C',
+      contactsIntensity: 46,
+    },
+  },
+  {
+    id: 'sweet_peach',
+    nameTh: 'สวีทพีช',
+    nameEn: 'Sweet Peach',
+    category: 'sweet',
+    featured: true,
     swatch: ['#ff8b94', '#ffd3b6'],
     settings: {
-      lipstickColor: '#E85D75',
-      lipstickIntensity: 58,
+      lipstickColor: '#E86375',
+      lipstickIntensity: 60,
       lipstickFinish: 'gloss',
       blushStyle: 'apple',
-      blushColor: '#FF8FA3',
-      blushIntensity: 44,
+      blushColor: '#FF92A5',
+      blushIntensity: 48,
       eyeshadowColor: '#E5989B',
-      eyeshadowIntensity: 38,
+      eyeshadowIntensity: 40,
       eyelinerStyle: 'puppy',
       eyelinerIntensity: 45,
       eyebrowColor: '#5C4338',
       eyebrowIntensity: 36,
       contourIntensity: 24,
-      highlightIntensity: 40,
+      highlightIntensity: 44,
       contactsColor: '#8B5E3C',
-      contactsIntensity: 32,
+      contactsIntensity: 36,
     },
   },
   {
-    id: 'sweet_rose',
-    nameTh: 'กุหลาบหวาน',
-    nameEn: 'Sweet Rose',
-    swatch: ['#d9486b', '#ffadc6'],
+    id: 'prung_jit',
+    nameTh: 'ปรุงจิต',
+    nameEn: 'Pure Aura',
+    category: 'natural',
+    featured: true,
+    swatch: ['#e09f96', '#f7d6d0'],
     settings: {
-      lipstickColor: '#D63E62',
-      lipstickIntensity: 68,
+      lipstickColor: '#CF6F6A',
+      lipstickIntensity: 50,
       lipstickFinish: 'velvet',
-      blushStyle: 'undereye',
-      blushColor: '#FF7096',
-      blushIntensity: 52,
-      eyeshadowColor: '#C97B84',
-      eyeshadowIntensity: 48,
+      blushStyle: 'apple',
+      blushColor: '#F4979C',
+      blushIntensity: 36,
+      eyeshadowColor: '#C9968B',
+      eyeshadowIntensity: 34,
       eyelinerStyle: 'natural',
-      eyelinerIntensity: 52,
-      eyebrowColor: '#4A362C',
+      eyelinerIntensity: 38,
+      eyebrowColor: '#4A3830',
+      eyebrowIntensity: 34,
+      contourIntensity: 20,
+      highlightIntensity: 38,
+      contactsColor: '#7A543E',
+      contactsIntensity: 28,
+    },
+  },
+  {
+    id: 'sweet_girl',
+    nameTh: 'สาวหวาน',
+    nameEn: 'Sweet Girl',
+    category: 'sweet',
+    featured: true,
+    hotBadge: true,
+    sparkleName: true,
+    swatch: ['#ff6b9d', '#ffc2d9'],
+    settings: {
+      lipstickColor: '#EB527B',
+      lipstickIntensity: 66,
+      lipstickFinish: 'gloss',
+      blushStyle: 'drunk',
+      blushColor: '#FF7AA2',
+      blushIntensity: 58,
+      eyeshadowColor: '#E88DA8',
+      eyeshadowIntensity: 46,
+      eyelinerStyle: 'puppy',
+      eyelinerIntensity: 48,
+      eyebrowColor: '#5A423A',
+      eyebrowIntensity: 38,
+      contourIntensity: 24,
+      highlightIntensity: 56,
+      contactsColor: '#6D7E91',
+      contactsIntensity: 42,
+    },
+  },
+  {
+    id: 'wonyoung',
+    nameTh: 'วอนยอง',
+    nameEn: 'Wonyoung',
+    category: 'new',
+    featured: true,
+    hotBadge: true,
+    swatch: ['#f04e7a', '#ffbad0'],
+    settings: {
+      lipstickColor: '#E23E6B',
+      lipstickIntensity: 72,
+      lipstickFinish: 'gloss',
+      blushStyle: 'undereye',
+      blushColor: '#FF85A8',
+      blushIntensity: 54,
+      eyeshadowColor: '#D68A98',
+      eyeshadowIntensity: 50,
+      eyelinerStyle: 'cat',
+      eyelinerIntensity: 56,
+      eyebrowColor: '#4E3930',
       eyebrowIntensity: 42,
       contourIntensity: 30,
-      highlightIntensity: 48,
-      contactsColor: '#5B4E6D',
-      contactsIntensity: 35,
+      highlightIntensity: 62,
+      contactsColor: '#7C624A',
+      contactsIntensity: 48,
+    },
+  },
+  {
+    id: 'winter_frost',
+    nameTh: 'หิมะฤดูหนาว',
+    nameEn: 'Winter Rose',
+    category: 'winter',
+    featured: true,
+    swatch: ['#d86c8c', '#dbeafe'],
+    settings: {
+      lipstickColor: '#C94468',
+      lipstickIntensity: 66,
+      lipstickFinish: 'velvet',
+      blushStyle: 'drunk',
+      blushColor: '#FF6B93',
+      blushIntensity: 60,
+      eyeshadowColor: '#B57B96',
+      eyeshadowIntensity: 48,
+      eyelinerStyle: 'natural',
+      eyelinerIntensity: 48,
+      eyebrowColor: '#483838',
+      eyebrowIntensity: 40,
+      contourIntensity: 28,
+      highlightIntensity: 60,
+      contactsColor: '#637C96',
+      contactsIntensity: 50,
     },
   },
   {
     id: 'milktea_latte',
-    nameTh: 'ชานมนู้ดผู้ดี',
-    nameEn: 'Milk Tea Nude',
+    nameTh: 'ชานมนู้ด',
+    nameEn: 'Milk Tea',
+    category: 'natural',
     swatch: ['#c68b77', '#e6beae'],
     settings: {
       lipstickColor: '#C46D5E',
@@ -207,7 +340,7 @@ export const MAKEUP_LOOK_PRESETS: MakeupLookPreset[] = [
       lipstickFinish: 'matte',
       blushStyle: 'sunkissed',
       blushColor: '#E09F87',
-      blushIntensity: 42,
+      blushIntensity: 44,
       eyeshadowColor: '#A97862',
       eyeshadowIntensity: 46,
       eyelinerStyle: 'natural',
@@ -221,33 +354,10 @@ export const MAKEUP_LOOK_PRESETS: MakeupLookPreset[] = [
     },
   },
   {
-    id: 'tokyo_igari',
-    nameTh: 'โตเกียวเมาแดด',
-    nameEn: 'Tokyo Igari',
-    swatch: ['#ff5c8a', '#ffa6c1'],
-    settings: {
-      lipstickColor: '#F25C78',
-      lipstickIntensity: 56,
-      lipstickFinish: 'gloss',
-      blushStyle: 'drunk',
-      blushColor: '#FF6B8B',
-      blushIntensity: 62,
-      eyeshadowColor: '#F497B6',
-      eyeshadowIntensity: 44,
-      eyelinerStyle: 'puppy',
-      eyelinerIntensity: 40,
-      eyebrowColor: '#6B4F43',
-      eyebrowIntensity: 32,
-      contourIntensity: 18,
-      highlightIntensity: 55,
-      contactsColor: '#6D8299',
-      contactsIntensity: 42,
-    },
-  },
-  {
     id: 'thai_glam',
-    nameTh: 'แกลมสายฝอ/ไทย',
-    nameEn: 'Red Carpet Glam',
+    nameTh: 'แกลมสายฝอ',
+    nameEn: 'Red Glam',
+    category: 'new',
     swatch: ['#a41623', '#d4a373'],
     settings: {
       lipstickColor: '#B5263B',
@@ -259,11 +369,11 @@ export const MAKEUP_LOOK_PRESETS: MakeupLookPreset[] = [
       eyeshadowColor: '#9C5B4E',
       eyeshadowIntensity: 62,
       eyelinerStyle: 'cat',
-      eyelinerIntensity: 75,
+      eyelinerIntensity: 72,
       eyebrowColor: '#362620',
       eyebrowIntensity: 56,
-      contourIntensity: 52,
-      highlightIntensity: 62,
+      contourIntensity: 50,
+      highlightIntensity: 60,
       contactsColor: '#567568',
       contactsIntensity: 46,
     },
@@ -271,6 +381,7 @@ export const MAKEUP_LOOK_PRESETS: MakeupLookPreset[] = [
 ];
 
 export const LIPSTICK_SWATCHES = [
+  { name: 'Plum', color: '#D64C64' },
   { name: 'Rose', color: '#E14A66' },
   { name: 'Peach', color: '#F27D72' },
   { name: 'Ruby', color: '#C41E3A' },
@@ -279,24 +390,23 @@ export const LIPSTICK_SWATCHES = [
   { name: 'Coral', color: '#FF6F61' },
   { name: 'Sakura', color: '#F58CA8' },
   { name: 'Brick', color: '#A44234' },
-  { name: 'Plum', color: '#7D284D' },
   { name: 'Nude', color: '#CE8C7B' },
 ];
 
 export const BLUSH_SWATCHES = [
+  { name: 'Berry Pink', color: '#F27C98' },
   { name: 'Pink', color: '#FF7E96' },
   { name: 'Peach', color: '#FF9E80' },
   { name: 'Rose', color: '#E56B8B' },
   { name: 'Apricot', color: '#F4A261' },
   { name: 'Lavender', color: '#D896FF' },
-  { name: 'Coral', color: '#FF758F' },
 ];
 
 export const EYESHADOW_SWATCHES = [
   { name: 'Rose Gold', color: '#C57B7B' },
+  { name: 'Plum Mauve', color: '#B87678' },
   { name: 'Cocoa', color: '#8D5B4C' },
   { name: 'Peach', color: '#E89B87' },
-  { name: 'Mauve', color: '#9D6B8E' },
   { name: 'Champagne', color: '#D4A87E' },
   { name: 'Smoky', color: '#4E4652' },
 ];
@@ -310,8 +420,8 @@ export const EYEBROW_SWATCHES = [
 ];
 
 export const CONTACTS_SWATCHES = [
+  { name: 'Olive Hazel', color: '#86694C' },
   { name: 'Choco', color: '#7A543E' },
-  { name: 'Hazel', color: '#A67C46' },
   { name: 'Ash Gray', color: '#6E7F91' },
   { name: 'Ocean Blue', color: '#477FA8' },
   { name: 'Olive', color: '#5C7C62' },
@@ -371,8 +481,8 @@ export const STICKER_PACKS: StickerPack[] = [
   },
   {
     id: 'badges',
-    nameTh: 'ป้าย Y2K / คาเฟ่',
-    nameEn: 'Y2K & Badges',
+    nameTh: 'ป้าย Y2K',
+    nameEn: 'Y2K',
     items: [
       { kind: 'badge', content: 'MEITU ♡ 2026', color: '#FF4F7B' },
       { kind: 'badge', content: 'DAILY VLOG ✦', color: '#18181B' },
@@ -382,25 +492,6 @@ export const STICKER_PACKS: StickerPack[] = [
       { kind: 'badge', content: '100% CUTE ★', color: '#EC4899' },
       { kind: 'badge', content: 'FILM · 400H', color: '#0F766E' },
       { kind: 'badge', content: 'OOTD ✨', color: '#EA580C' },
-      { kind: 'badge', content: 'SWEET DAY ♡', color: '#FB7185' },
-      { kind: 'badge', content: 'REC ● 00:14', color: '#DC2626' },
-    ],
-  },
-  {
-    id: 'glasses',
-    nameTh: 'แฟชั่น & แว่น',
-    nameEn: 'Fashion',
-    items: [
-      { kind: 'emoji', content: '🕶️' },
-      { kind: 'emoji', content: '👓' },
-      { kind: 'emoji', content: '💋' },
-      { kind: 'emoji', content: '🌹' },
-      { kind: 'emoji', content: '💎' },
-      { kind: 'emoji', content: '🎧' },
-      { kind: 'emoji', content: '📷' },
-      { kind: 'emoji', content: '🎞️' },
-      { kind: 'emoji', content: '🪩' },
-      { kind: 'emoji', content: '🥂' },
     ],
   },
 ];
@@ -439,7 +530,7 @@ export const TEXT_STYLE_PRESETS: Array<{
   },
   {
     id: 'cutePill',
-    nameTh: 'ป้ายชมพูน่ารัก',
+    nameTh: 'ป้ายชมพู',
     nameEn: 'Cute Pill',
     color: '#FFFFFF',
     strokeColor: '#FF4F7B',
@@ -450,7 +541,7 @@ export const TEXT_STYLE_PRESETS: Array<{
   },
   {
     id: 'magazine',
-    nameTh: 'ปกนิตยสาร',
+    nameTh: 'นิตยสาร',
     nameEn: 'Magazine',
     color: '#FFFDF7',
     strokeColor: '#111111',
@@ -461,8 +552,8 @@ export const TEXT_STYLE_PRESETS: Array<{
   },
   {
     id: 'neon',
-    nameTh: 'นีออนเรืองแสง',
-    nameEn: 'Neon Glow',
+    nameTh: 'นีออน',
+    nameEn: 'Neon',
     color: '#FFF0F7',
     strokeColor: '#FF2E93',
     strokeWidth: 3,
@@ -472,8 +563,8 @@ export const TEXT_STYLE_PRESETS: Array<{
   },
   {
     id: 'y2k',
-    nameTh: 'Y2K ขอบหนา',
-    nameEn: 'Y2K Bold',
+    nameTh: 'Y2K',
+    nameEn: 'Y2K',
     color: '#FFDF6B',
     strokeColor: '#FF3B7F',
     strokeWidth: 5,
@@ -483,8 +574,8 @@ export const TEXT_STYLE_PRESETS: Array<{
   },
   {
     id: 'subtitle',
-    nameTh: 'ซับไตเติ้ลหนัง',
-    nameEn: 'Cinema Sub',
+    nameTh: 'ซับหนัง',
+    nameEn: 'Cinema',
     color: '#FFF5CC',
     strokeColor: '#000000',
     strokeWidth: 2,
@@ -494,8 +585,8 @@ export const TEXT_STYLE_PRESETS: Array<{
   },
   {
     id: 'polaroid',
-    nameTh: 'ลายมือโพลารอยด์',
-    nameEn: 'Handwritten',
+    nameTh: 'ลายมือ',
+    nameEn: 'Script',
     color: '#FF4F7B',
     strokeColor: '#FFFFFF',
     strokeWidth: 4,
@@ -541,7 +632,7 @@ export interface SamplePhoto {
   id: string;
   src: string;
   labelKey: 'samplePortrait' | 'sampleFashion' | 'sampleCafe' | 'sampleBeach';
-  recommendedTab: 'beauty' | 'cutout' | 'filters' | 'hsl';
+  recommendedTab: 'beauty' | 'makeup' | 'cutout' | 'filters' | 'hsl';
 }
 
 export const SAMPLE_PHOTOS: SamplePhoto[] = [
@@ -549,13 +640,13 @@ export const SAMPLE_PHOTOS: SamplePhoto[] = [
     id: 'portrait',
     src: './samples/portrait-beauty.jpg',
     labelKey: 'samplePortrait',
-    recommendedTab: 'beauty',
+    recommendedTab: 'makeup',
   },
   {
     id: 'fashion',
     src: './samples/fashion-street.jpg',
     labelKey: 'sampleFashion',
-    recommendedTab: 'cutout',
+    recommendedTab: 'filters',
   },
   {
     id: 'cafe',
